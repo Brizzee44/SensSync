@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SensSync — Game Sensitivity Converter</title>
+<title>AimPort — Game Sensitivity Converter</title>
 <style>
 /* ─── Reset & Base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -418,7 +418,7 @@ html.dark .toggle-thumb {
 
   <header class="site-header">
     <div class="wordmark">
-      <div class="wordmark-name">Sens<em>Sync</em></div>
+      <div class="wordmark-name">Aim<em>Port</em></div>
       <div class="wordmark-badge">Beta</div>
     </div>
     <div class="header-right">
@@ -1035,7 +1035,7 @@ function doCopy(btn, text) {
 document.addEventListener('DOMContentLoaded', function() {
   init();
   // Restore saved theme preference
-  if (localStorage.getItem('senssync-theme') === 'dark') {
+  if (localStorage.getItem('aimport-theme') === 'dark') {
     applyDark();
   }
 });
@@ -1052,10 +1052,10 @@ function toggleTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   if (isDark) {
     applyLight();
-    localStorage.setItem('senssync-theme', 'light');
+    localStorage.setItem('aimport-theme', 'light');
   } else {
     applyDark();
-    localStorage.setItem('senssync-theme', 'dark');
+    localStorage.setItem('aimport-theme', 'dark');
   }
 }
 </script>
