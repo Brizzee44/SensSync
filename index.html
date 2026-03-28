@@ -96,7 +96,9 @@ body {
   margin-bottom: 32px;
 }
 .tab-btn {
-  padding: 10px 22px;
+  flex: 1;
+  text-align: center;
+  padding: 12px 22px;
   border: none; background: none; font-family: inherit;
   font-size: 14px; font-weight: 500; color: var(--text-3);
   cursor: pointer; transition: color 0.15s;
@@ -256,6 +258,13 @@ input[readonly]:focus { box-shadow: none; border-color: var(--border); }
   border-radius: var(--r); overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.06);
 }
+.results-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.results-scroll table {
+  min-width: 480px;
+}
 .results-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px; border-bottom: 1px solid var(--border);
@@ -317,6 +326,7 @@ tbody tr.row-source:hover td { background: #dbeafe; }
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .theme-switch {
@@ -368,16 +378,38 @@ html.dark .toggle-thumb {
 
 /* ─── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 660px) {
+  .page { padding: 28px 16px 80px; }
   .converter-body { grid-template-columns: 1fr; }
   .conv-divider { display: none; }
-  .conv-side { padding: 22px; }
+  .conv-side { padding: 20px 16px; }
   .conv-side.source { border-bottom: 1px solid var(--border); }
-  .site-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .site-tagline { text-align: left; }
-  .stats-strip { grid-template-columns: 1fr; }
-  .g2 { grid-template-columns: 1fr; }
+
+  /* Header: logo top-left, toggle top-right, tagline below full width */
+  .site-header {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+  }
+  .header-right {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .site-tagline { display: none; }
+
+  /* Stats */
+  .stats-strip { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-value { font-size: 18px; }
+
+  /* Forms */
+  .g2 { grid-template-columns: 1fr 1fr; }
   .g3 { grid-template-columns: 1fr 1fr; }
-  th:nth-child(3), td:nth-child(3) { display: none; }
+
+  /* Table: hide less important columns on small screens, rely on horizontal scroll */
+  .results-scroll { border-radius: 0; }
 }
 </style>
 </head>
@@ -545,10 +577,12 @@ html.dark .toggle-thumb {
         <div class="results-head-title">Sensitivity for All Games</div>
         <div class="results-head-meta" id="m-results-meta"></div>
       </div>
-      <table>
-        <thead><tr><th>Game</th><th>Sensitivity</th><th>Horiz / Vert</th><th>Scope / ADS</th><th>cm / 360°</th><th></th></tr></thead>
-        <tbody id="m-tbody"></tbody>
-      </table>
+      <div class="results-scroll">
+        <table>
+          <thead><tr><th>Game</th><th>Sensitivity</th><th>Horiz / Vert</th><th>Scope / ADS</th><th>cm / 360°</th><th></th></tr></thead>
+          <tbody id="m-tbody"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="empty-state" id="m-empty">
@@ -642,10 +676,12 @@ html.dark .toggle-thumb {
         <div class="results-head-title">Controller Settings for All Games</div>
         <div class="results-head-meta" id="c-results-meta"></div>
       </div>
-      <table>
-        <thead><tr><th>Game</th><th>Horizontal / Vertical</th><th>Scope / ADS</th><th></th></tr></thead>
-        <tbody id="c-tbody"></tbody>
-      </table>
+      <div class="results-scroll">
+        <table>
+          <thead><tr><th>Game</th><th>Horizontal / Vertical</th><th>Scope / ADS</th><th></th></tr></thead>
+          <tbody id="c-tbody"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="empty-state" id="c-empty">
