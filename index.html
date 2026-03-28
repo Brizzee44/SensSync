@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SensSync — Game Sensitivity Converter</title>
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: #232733;
+    --border-hot: #f5a623;
+    --accent: #f5a623;
+    --accent2: #e8523a;
+    --accent3: #5de0d8;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --green: #4ade80;
+    --red: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(245,166,35,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* Header */
+  header {
+    padding: 36px 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+
+  .logo-main {
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .logo-main span {
+    color: var(--accent);
+  }
+
+  .logo-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-left: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #0a0b0f;
+  }
+
+  .tab-btn .icon { font-size: 16px; }
+
+  /* Tab panels */
+  .tab-panel { display: none !important; }
+  .tab-panel.active { display: block !important; }
+
+  /* Converter layout */
+  .converter-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .panel:hover { border-color: #2e3340; }
+  .panel.source { border-top: 2px solid var(--accent); }
+  .panel.target { border-top: 2px solid var(--accent3); }
+
+  .panel-label {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .panel.source .panel-label { color: var(--accent); }
+  .panel.target .panel-label { color: var(--accent3); }
+
+  .arrow-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 60px;
+  }
+
+  .arrow-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0); }
+    50% { box-shadow: 0 0 0 6px rgba(245,166,35,0.1); }
+  }
+
+  /* Form elements */
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  select, input[type="number"], input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
+  }
+
+  select option { background: #1a1d24; }
+
+  /* Game select with icon */
+  .game-select-wrapper {
+    position: relative;
+  }
+
+  .game-badge {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .game-select-wrapper select { padding-left: 40px; }
+
+  /* DPI row */
+  .dpi-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Results */
+  .result-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent3), transparent);
+  }
+
+  .result-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .result-value {
+    font-family: 'Courier New', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent3);
+    line-height: 1;
+  }
+
+  .result-unit {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+  }
+
+  .result-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .result-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .meta-key {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .meta-val {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Bulk results table */
+  .bulk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .badge {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  .badge-green { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+  .badge-orange { background: rgba(245,166,35,0.1); color: var(--accent); border: 1px solid rgba(245,166,35,0.2); }
+
+  .games-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .games-table th {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  .games-table td {
+    padding: 14px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(35,39,51,0.5);
+  }
+
+  .games-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .games-table tr:last-child td { border-bottom: none; }
+
+  .game-row-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .game-icon-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .game-name { font-weight: 600; }
+  .game-genre { font-size: 11px; color: var(--text-muted); }
+
+  .sens-val {
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent3);
+  }
+
+  .cm360-val {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .copy-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* Convert button */
+  .convert-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0a0b0f;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  .convert-btn:hover {
+    background: #fbbf24;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(245,166,35,0.25);
+  }
+
+  .convert-btn:active { transform: translateY(0); }
+
+  /* Info cards */
+  .info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .info-card-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .info-card-val {
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .info-card-val span {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* No results */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-text { font-size: 14px; line-height: 1.6; }
+
+  /* Controller specific */
+  .sensitivity-preview {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .sensitivity-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Tooltip */
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: help;
+    margin-left: 4px;
+    position: relative;
+  }
+
+  .help-icon:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e2130;
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--text-dim);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 680px) {
+    .converter-grid { grid-template-columns: 1fr; }
+    .arrow-col { padding-top: 0; }
+    .arrow-icon { transform: rotate(90deg); }
+    .info-row { grid-template-columns: 1fr; }
+    .dpi-row { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 8px; align-items: flex-start; }
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-box, .panel { animation: none; }
+  .games-table tr { animation: none; }
+
+  .highlight-flash {
+    animation: flash 0.4s ease;
+  }
+
+  @keyframes flash {
+    0% { background: rgba(93,224,216,0.15); }
+    100% { background: transparent; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="logo">
+      <div class="logo-main">SENS<span>SYNC</span></div>
+      <div class="logo-tag">v1.0</div>
+    </div>
+    <div class="header-sub">// game sensitivity converter</div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('mouse')" id="tab-mouse">
+      <span class="icon">🖱️</span> MOUSE & KB
+    </button>
+    <button class="tab-btn" onclick="switchTab('controller')" id="tab-controller">
+      <span class="icon">🎮</span> CONTROLLER
+    </button>
+  </div>
+
+  <!-- ========== MOUSE TAB ========== -->
+  <div id="panel-mouse" class="tab-panel active">
+
+    <div class="converter-grid">
+      <!-- Source -->
+      <div class="panel source">
+        <div class="panel-label">▶ SOURCE GAME</div>
+        <div class="field">
+          <label>Game</label>
+          <div class="game-select-wrapper">
+            <div class="game-badge" id="src-badge">🎯</div>
+            <select id="src-game" onchange="updateSourceBadge(); convertSingle()">
+              <option value="">— Select a game —</option>
+            </select>
+          </div>
+        </div>
+        <div class="dpi-row">
+          <div class="field">
+            <label>Mouse DPI <span class="help-icon" data-tip="Dots per inch — your mouse hardware setting">?</span></label>
+            <input type="number" id="src-dpi" value="800" min="100" max="32000" step="100" oninput="convertSingle()">
+          </div>
+          <div class="field">
+            <label>In-game Sens</label>
+            <input type="number" id="src-sens" value="" placeholder="e.g. 0.35" step="0.01" min="0.01" oninput="convertSingle()">
+          </div>
+        </div>
+        <div class="field">
+          <label>cm/360° <span class="help-icon" data-tip="How far you physically move your mouse for one full 360° rotation">?</span></label>
+          <input type="number" id="src-cm360" placeholder="Auto-calculated" step="0.1" readonly style="color: var(--text-muted); cursor:default;">
+          <div class="sensitivity-preview"><div class="sensitivity-bar" id="src-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="arrow-col">
+        <div class="arrow-icon">→</div>
+      </div>
+
+      <!-- Target -->
+      <div class="panel target">
+        <div class="panel-label">◉ TARGET GAME</div>
+        <div class="field">
+          <label>Game</label>
+          <div class="game-select-wrapper">
+            <div class="game-badge" id="tgt-badge">🎮</div>
+            <select id="tgt-game" onchange="updateTargetBadge(); convertSingle()">
+              <option value="">— Select a game —</option>
+            </select>
+          </div>
+        </div>
+        <div class="dpi-row">
+          <div class="field">
+            <label>Mouse DPI</label>
+            <input type="number" id="tgt-dpi" value="800" min="100" max="32000" step="100" oninput="convertSingle()">
+          </div>
+          <div class="field">
+            <label>Result Sens</label>
+            <input type="number" id="tgt-sens-out" placeholder="—" readonly style="color: var(--accent3); font-weight:700; cursor:default; font-family: 'Courier New',monospace;">
+          </div>
+        </div>
+        <div class="field">
+          <label>cm/360°</label>
+          <input type="number" id="tgt-cm360" placeholder="Same as source" step="0.1" readonly style="color: var(--text-muted); cursor:default;">
+          <div class="sensitivity-preview"><div class="sensitivity-bar" id="tgt-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single result box -->
+    <div id="single-result" style="display:none">
+      <div class="result-box" id="res-box">
+        <div class="result-main">
+          <div class="result-value" id="res-value">—</div>
+          <div class="result-unit">sensitivity</div>
+        </div>
+        <div class="result-label" id="res-label">Set this value in your target game</div>
+        <div class="result-meta">
+          <div class="meta-item">
+            <div class="meta-key">CM / 360°</div>
+            <div class="meta-val" id="res-cm360">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Effective DPI</div>
+            <div class="meta-val" id="res-edpi">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Match Quality</div>
+            <div class="meta-val" id="res-quality">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk convert all games -->
+    <button class="convert-btn" onclick="convertAll()">⚡ CONVERT TO ALL GAMES</button>
+
+    <div class="bulk-header">
+      <div class="section-title">All Games</div>
+      <div id="bulk-badge" class="badge badge-orange" style="display:none"></div>
+    </div>
+
+    <!-- Info row -->
+    <div class="info-row" id="info-row" style="display:none">
+      <div class="info-card">
+        <div class="info-card-title">Your cm/360°</div>
+        <div class="info-card-val" id="info-cm360">— <span>cm</span></div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">eDPI</div>
+        <div class="info-card-val" id="info-edpi">— <span>eDPI</span></div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Source Game</div>
+        <div class="info-card-val" id="info-game" style="font-size:14px">—</div>
+      </div>
+    </div>
+
+    <div id="bulk-results" class="panel" style="padding:0; overflow:hidden; display:none">
+      <table class="games-table">
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>Sensitivity</th>
+            <th>cm/360°</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bulk-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="empty-state" class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <div class="empty-text">Select your source game, enter your DPI and sensitivity,<br>then hit Convert to see all recommendations.</div>
+    </div>
+
+  </div>
+
+  <!-- ========== CONTROLLER TAB ========== -->
+  <div id="panel-controller" class="tab-panel">
+    <div class="converter-grid">
+      <div class="panel source">
+        <div class="panel-label">▶ SOURCE GAME</div>
+        <div class="field">
+          <label>Game</label>
+          <div class="game-select-wrapper">
+            <div class="game-badge" id="ctrl-src-badge">🎯</div>
+            <select id="ctrl-src-game" onchange="updateCtrlBadge('src'); ctrlConvert()">
+              <option value="">— Select a game —</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Look Sensitivity (X/Horizontal)</label>
+          <input type="number" id="ctrl-src-x" value="" placeholder="e.g. 5" min="0" max="100" step="1" oninput="ctrlConvert()">
+        </div>
+        <div class="field">
+          <label>Look Sensitivity (Y/Vertical)</label>
+          <input type="number" id="ctrl-src-y" value="" placeholder="e.g. 5" min="0" max="100" step="1" oninput="ctrlConvert()">
+        </div>
+        <div class="field">
+          <label>ADS / Zoom Sensitivity <span class="help-icon" data-tip="Sensitivity applied while aiming down sights">?</span></label>
+          <input type="number" id="ctrl-src-ads" value="" placeholder="e.g. 1.0" min="0" max="10" step="0.1" oninput="ctrlConvert()">
+        </div>
+      </div>
+
+      <div class="arrow-col">
+        <div class="arrow-icon">→</div>
+      </div>
+
+      <div class="panel target">
+        <div class="panel-label">◉ TARGET GAME</div>
+        <div class="field">
+          <label>Game</label>
+          <div class="game-select-wrapper">
+            <div class="game-badge" id="ctrl-tgt-badge">🎮</div>
+            <select id="ctrl-tgt-game" onchange="updateCtrlBadge('tgt'); ctrlConvert()">
+              <option value="">— Select a game —</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Look Sensitivity (X)</label>
+          <input type="number" id="ctrl-res-x" placeholder="—" readonly style="color: var(--accent3); font-weight:700; cursor:default; font-family:'Courier New',monospace;">
+        </div>
+        <div class="field">
+          <label>Look Sensitivity (Y)</label>
+          <input type="number" id="ctrl-res-y" placeholder="—" readonly style="color: var(--accent3); font-weight:700; cursor:default; font-family:'Courier New',monospace;">
+        </div>
+        <div class="field">
+          <label>ADS / Zoom Sensitivity</label>
+          <input type="number" id="ctrl-res-ads" placeholder="—" readonly style="color: var(--accent3); font-weight:700; cursor:default; font-family:'Courier New',monospace;">
+        </div>
+      </div>
+    </div>
+
+    <button class="convert-btn" onclick="ctrlConvertAll()">⚡ CONVERT TO ALL GAMES</button>
+
+    <div class="bulk-header">
+      <div class="section-title">Controller Recommendations</div>
+    </div>
+
+    <div id="ctrl-bulk-results" class="panel" style="padding:0; overflow:hidden; display:none">
+      <table class="games-table">
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>Look X / Y</th>
+            <th>ADS Sens</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ctrl-bulk-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="ctrl-empty-state" class="empty-state">
+      <div class="empty-icon">🎮</div>
+      <div class="empty-text">Select your source game, enter your controller sensitivity,<br>then hit Convert to see all recommendations.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================
+// GAME DATABASE
+// ============================
+
+const MOUSE_GAMES = [
+  // yaw = degrees per count (1 DPI unit). sens_1x = raw multiplier at sensitivity 1.0
+  { id: 'cs2',      name: 'CS2 / CS:GO',         icon: '💣', genre: 'Tactical FPS', yaw: 0.022,   min: 0.01, max: 5,   step: 0.001, default: 1.0 },
+  { id: 'valorant', name: 'Valorant',              icon: '🔫', genre: 'Tactical FPS', yaw: 0.07,    min: 0.01, max: 10,  step: 0.01,  default: 0.5 },
+  { id: 'apex',     name: 'Apex Legends',          icon: '🦊', genre: 'Battle Royale',yaw: 0.022,   min: 0.01, max: 3,   step: 0.01,  default: 1.0 },
+  { id: 'overwatch2',name: 'Overwatch 2',          icon: '⚡', genre: 'Hero Shooter', yaw: 0.0066,  min: 1,    max: 100, step: 0.5,   default: 5.0 },
+  { id: 'fortnite', name: 'Fortnite',              icon: '🏗️', genre: 'Battle Royale',yaw: 0.5588,  min: 0.01, max: 1,   step: 0.001, default: 0.06 },
+  { id: 'warzone',  name: 'Call of Duty: Warzone', icon: '💀', genre: 'Battle Royale',yaw: 0.0066,  min: 1,    max: 20,  step: 0.1,   default: 6.0 },
+  { id: 'mw3',      name: 'MW3 / Modern Warfare',  icon: '🪖', genre: 'FPS',          yaw: 0.0066,  min: 1,    max: 20,  step: 0.1,   default: 6.0 },
+  { id: 'r6',       name: 'Rainbow Six Siege',     icon: '🛡️', genre: 'Tactical FPS', yaw: 0.00572, min: 1,    max: 100, step: 1,     default: 25 },
+  { id: 'ow1',      name: 'Overwatch 1',            icon: '🌈', genre: 'Hero Shooter', yaw: 0.0066,  min: 1,    max: 100, step: 0.5,   default: 5.0 },
+  { id: 'tf2',      name: 'Team Fortress 2',       icon: '🎪', genre: 'FPS',          yaw: 0.022,   min: 0.01, max: 10,  step: 0.01,  default: 1.0 },
+  { id: 'quake',    name: 'Quake Champions',       icon: '⚡', genre: 'Arena FPS',    yaw: 0.022,   min: 0.01, max: 10,  step: 0.01,  default: 1.0 },
+  { id: 'destiny2', name: 'Destiny 2',             icon: '🚀', genre: 'FPS',          yaw: 0.01373, min: 0,    max: 10,  step: 0.5,   default: 3.0 },
+  { id: 'halo',     name: 'Halo Infinite',         icon: '🪖', genre: 'FPS',          yaw: 0.01746, min: 1,    max: 10,  step: 0.5,   default: 3.0 },
+  { id: 'tf2014',   name: 'Titanfall 2',           icon: '🤖', genre: 'FPS',          yaw: 0.022,   min: 0.01, max: 5,   step: 0.01,  default: 1.0 },
+  { id: 'pubg',     name: 'PUBG',                  icon: '🍳', genre: 'Battle Royale', yaw: 0.0733,  min: 0.01, max: 3,   step: 0.01,  default: 0.4 },
+  { id: 'paladins', name: 'Paladins',              icon: '⚔️', genre: 'Hero Shooter', yaw: 0.025,   min: 10,   max: 150, step: 1,     default: 50 },
+  { id: 'hunt',     name: 'Hunt: Showdown',        icon: '🔦', genre: 'FPS',          yaw: 0.03819, min: 0.5,  max: 5,   step: 0.1,   default: 1.5 },
+  { id: 'tarkov',   name: 'Escape from Tarkov',    icon: '🎒', genre: 'FPS',          yaw: 0.02,    min: 0.01, max: 2,   step: 0.01,  default: 1.0 },
+];
+
+// Controller games: scale = the max sensitivity value at max setting
+// normalized_yaw = how many deg/s per sensitivity unit (approximate, normalized to allow conversion)
+const CTRL_GAMES = [
+  { id: 'cs2_ctrl',     name: 'CS2',              icon: '💣', genre: 'Tactical FPS',  scale_x: 40,   scale_y: 40,   ads_scale: 5,    default_x: 2, default_y: 2, default_ads: 1 },
+  { id: 'valorant_ctrl',name: 'Valorant',          icon: '🔫', genre: 'Tactical FPS',  scale_x: 10,   scale_y: 10,   ads_scale: 2,    default_x: 5, default_y: 5, default_ads: 1 },
+  { id: 'apex_ctrl',    name: 'Apex Legends',      icon: '🦊', genre: 'Battle Royale', scale_x: 7,    scale_y: 7,    ads_scale: 3,    default_x: 3, default_y: 3, default_ads: 1 },
+  { id: 'ow2_ctrl',     name: 'Overwatch 2',       icon: '⚡', genre: 'Hero Shooter',  scale_x: 100,  scale_y: 100,  ads_scale: 5,    default_x: 50,default_y: 50, default_ads: 2 },
+  { id: 'fortnite_ctrl',name: 'Fortnite',          icon: '🏗️', genre: 'Battle Royale', scale_x: 100,  scale_y: 100,  ads_scale: 2,    default_x: 40,default_y: 40, default_ads: 1 },
+  { id: 'warzone_ctrl', name: 'Call of Duty: Warzone',icon:'💀',genre: 'Battle Royale', scale_x: 20,   scale_y: 20,   ads_scale: 1.5,  default_x: 7, default_y: 7, default_ads: 1 },
+  { id: 'mw3_ctrl',     name: 'MW3',               icon: '🪖', genre: 'FPS',           scale_x: 20,   scale_y: 20,   ads_scale: 1.5,  default_x: 7, default_y: 7, default_ads: 1 },
+  { id: 'r6_ctrl',      name: 'Rainbow Six Siege', icon: '🛡️', genre: 'Tactical FPS',  scale_x: 100,  scale_y: 100,  ads_scale: 1,    default_x: 35,default_y: 35, default_ads: 50 },
+  { id: 'halo_ctrl',    name: 'Halo Infinite',     icon: '🪖', genre: 'FPS',           scale_x: 10,   scale_y: 10,   ads_scale: 10,   default_x: 3, default_y: 3, default_ads: 4 },
+  { id: 'destiny_ctrl', name: 'Destiny 2',         icon: '🚀', genre: 'FPS',           scale_x: 10,   scale_y: 10,   ads_scale: 10,   default_x: 3, default_y: 3, default_ads: 3 },
+  { id: 'pubg_ctrl',    name: 'PUBG',              icon: '🍳', genre: 'Battle Royale', scale_x: 100,  scale_y: 100,  ads_scale: 1,    default_x: 40,default_y: 40, default_ads: 50 },
+  { id: 'bf2042_ctrl',  name: 'Battlefield 2042',  icon: '💥', genre: 'FPS',           scale_x: 100,  scale_y: 100,  ads_scale: 100,  default_x: 30,default_y: 30, default_ads: 30 },
+  { id: 'titanfall_ctrl',name:'Titanfall 2',       icon: '🤖', genre: 'FPS',           scale_x: 10,   scale_y: 10,   ads_scale: 2,    default_x: 4, default_y: 4, default_ads: 1 },
+];
+
+// ============================
+// INIT
+// ============================
+function populateSelects() {
+  const srcSel = document.getElementById('src-game');
+  const tgtSel = document.getElementById('tgt-game');
+  const ctrlSrcSel = document.getElementById('ctrl-src-game');
+  const ctrlTgtSel = document.getElementById('ctrl-tgt-game');
+
+  MOUSE_GAMES.forEach(g => {
+    [srcSel, tgtSel].forEach(sel => {
+      const opt = new Option(`${g.icon} ${g.name}`, g.id);
+      sel.add(opt.cloneNode(true));
+    });
+  });
+
+  CTRL_GAMES.forEach(g => {
+    [ctrlSrcSel, ctrlTgtSel].forEach(sel => {
+      const opt = new Option(`${g.icon} ${g.name}`, g.id);
+      sel.add(opt.cloneNode(true));
+    });
+  });
+}
+
+function switchTab(name) {
+  ['mouse','controller'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('active', t === name);
+    document.getElementById('tab-'+t).classList.toggle('active', t === name);
+  });
+}
+
+// ============================
+// MOUSE CONVERSION MATH
+// ============================
+
+// cm/360 = (360 / (yaw * dpi * sensitivity)) * 2.54
+function getCm360(game, dpi, sensitivity) {
+  return (360 / (game.yaw * dpi * sensitivity)) * 2.54;
+}
+
+// sensitivity = (360 / (yaw * dpi * cm360)) * 2.54
+function getSensFromCm360(game, dpi, cm360) {
+  return (360 * 2.54) / (game.yaw * dpi * cm360);
+}
+
+function updateSourceBadge() {
+  const g = MOUSE_GAMES.find(x => x.id === document.getElementById('src-game').value);
+  document.getElementById('src-badge').textContent = g ? g.icon : '🎯';
+}
+
+function updateTargetBadge() {
+  const g = MOUSE_GAMES.find(x => x.id === document.getElementById('tgt-game').value);
+  document.getElementById('tgt-badge').textContent = g ? g.icon : '🎮';
+}
+
+function convertSingle() {
+  const srcId = document.getElementById('src-game').value;
+  const tgtId = document.getElementById('tgt-game').value;
+  const srcDpi = parseFloat(document.getElementById('src-dpi').value) || 800;
+  const srcSens = parseFloat(document.getElementById('src-sens').value);
+  const tgtDpi = parseFloat(document.getElementById('tgt-dpi').value) || 800;
+
+  const srcGame = MOUSE_GAMES.find(x => x.id === srcId);
+  const tgtGame = MOUSE_GAMES.find(x => x.id === tgtId);
+
+  if (!srcGame || !srcSens) {
+    document.getElementById('src-cm360').value = '';
+    document.getElementById('tgt-cm360').value = '';
+    document.getElementById('tgt-sens-out').value = '';
+    document.getElementById('single-result').style.display = 'none';
+    updateBar('src-bar', 0);
+    return;
+  }
+
+  const cm360 = getCm360(srcGame, srcDpi, srcSens);
+  document.getElementById('src-cm360').value = cm360.toFixed(2);
+  updateBar('src-bar', Math.min((cm360 / 60) * 100, 100));
+
+  if (!tgtGame) {
+    document.getElementById('tgt-cm360').value = '';
+    document.getElementById('tgt-sens-out').value = '';
+    document.getElementById('single-result').style.display = 'none';
+    return;
+  }
+
+  const tgtSens = getSensFromCm360(tgtGame, tgtDpi, cm360);
+  const clampedSens = Math.max(tgtGame.min, Math.min(tgtGame.max, tgtSens));
+
+  document.getElementById('tgt-cm360').value = cm360.toFixed(2);
+  document.getElementById('tgt-sens-out').value = clampedSens.toFixed(3);
+  updateBar('tgt-bar', Math.min((cm360 / 60) * 100, 100));
+
+  // Show result box
+  const box = document.getElementById('single-result');
+  box.style.display = 'block';
+  document.getElementById('res-value').textContent = clampedSens.toFixed(3);
+  document.getElementById('res-label').textContent = `Set in ${tgtGame.name}`;
+  document.getElementById('res-cm360').textContent = cm360.toFixed(2) + ' cm';
+  document.getElementById('res-edpi').textContent = (srcDpi * srcSens).toFixed(0);
+
+  const withinRange = tgtSens >= tgtGame.min && tgtSens <= tgtGame.max;
+  document.getElementById('res-quality').textContent = withinRange ? '✅ Exact match' : '⚠️ Clamped (out of range)';
+  document.getElementById('res-box').classList.add('highlight-flash');
+  setTimeout(() => document.getElementById('res-box').classList.remove('highlight-flash'), 400);
+}
+
+function convertAll() {
+  const srcId = document.getElementById('src-game').value;
+  const srcDpi = parseFloat(document.getElementById('src-dpi').value) || 800;
+  const srcSens = parseFloat(document.getElementById('src-sens').value);
+  const srcGame = MOUSE_GAMES.find(x => x.id === srcId);
+
+  if (!srcGame || !srcSens || isNaN(srcSens) || srcSens <= 0) {
+    alert('Please select a source game and enter your sensitivity first.');
+    return;
+  }
+
+  const cm360 = getCm360(srcGame, srcDpi, srcSens);
+  const edpi = (srcDpi * srcSens).toFixed(0);
+
+  // Update info row
+  document.getElementById('info-row').style.display = 'grid';
+  document.getElementById('info-cm360').innerHTML = `${cm360.toFixed(2)} <span>cm</span>`;
+  document.getElementById('info-edpi').innerHTML = `${edpi} <span>eDPI</span>`;
+  document.getElementById('info-game').textContent = srcGame.name;
+  document.getElementById('empty-state').style.display = 'none';
+
+  const tbody = document.getElementById('bulk-tbody');
+  tbody.innerHTML = '';
+
+  MOUSE_GAMES.forEach((g, i) => {
+    const tgtSens = getSensFromCm360(g, srcDpi, cm360);
+    const clampedSens = Math.max(g.min, Math.min(g.max, tgtSens));
+    const withinRange = tgtSens >= g.min && tgtSens <= g.max;
+    const isSource = g.id === srcId;
+
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = `${i * 0.03}s`;
+    if (isSource) tr.style.background = 'rgba(245,166,35,0.04)';
+
+    tr.innerHTML = `
+      <td>
+        <div class="game-row-name">
+          <div class="game-icon-sm" style="background:var(--surface2)">${g.icon}</div>
+          <div>
+            <div class="game-name">${g.name} ${isSource ? '<span style="color:var(--accent);font-size:10px;font-family:\'Courier New\',monospace;margin-left:4px">SOURCE</span>' : ''}</div>
+            <div class="game-genre">${g.genre}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="sens-val">${clampedSens.toFixed(3)}</span> ${!withinRange ? '<span style="color:var(--accent2);font-size:11px;margin-left:4px">⚠ clamped</span>' : ''}</td>
+      <td><span class="cm360-val">${cm360.toFixed(2)} cm</span></td>
+      <td>
+        <button class="copy-btn" onclick="copyVal(this, '${clampedSens.toFixed(3)}')">COPY</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('bulk-results').style.display = 'block';
+  document.getElementById('bulk-badge').style.display = 'inline-flex';
+  document.getElementById('bulk-badge').textContent = `${MOUSE_GAMES.length} GAMES`;
+}
+
+function updateBar(id, pct) {
+  document.getElementById(id).style.width = pct + '%';
+}
+
+function copyVal(btn, val) {
+  navigator.clipboard.writeText(val).then(() => {
+    btn.textContent = 'COPIED!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ============================
+// CONTROLLER CONVERSION
+// ============================
+
+function updateCtrlBadge(side) {
+  if (side === 'src') {
+    const g = CTRL_GAMES.find(x => x.id === document.getElementById('ctrl-src-game').value);
+    document.getElementById('ctrl-src-badge').textContent = g ? g.icon : '🎯';
+  } else {
+    const g = CTRL_GAMES.find(x => x.id === document.getElementById('ctrl-tgt-game').value);
+    document.getElementById('ctrl-tgt-badge').textContent = g ? g.icon : '🎮';
+  }
+}
+
+// Normalize sensitivity: sens / scale = 0..1 (0 = min, 1 = max)
+function ctrlNormalize(val, scale) {
+  return val / scale;
+}
+function ctrlDenormalize(norm, scale) {
+  return norm * scale;
+}
+
+function ctrlConvert() {
+  const srcId = document.getElementById('ctrl-src-game').value;
+  const tgtId = document.getElementById('ctrl-tgt-game').value;
+  const srcX = parseFloat(document.getElementById('ctrl-src-x').value);
+  const srcY = parseFloat(document.getElementById('ctrl-src-y').value);
+  const srcAds = parseFloat(document.getElementById('ctrl-src-ads').value);
+
+  const srcGame = CTRL_GAMES.find(x => x.id === srcId);
+  const tgtGame = CTRL_GAMES.find(x => x.id === tgtId);
+
+  if (!srcGame || isNaN(srcX)) return;
+
+  if (!tgtGame) {
+    document.getElementById('ctrl-res-x').value = '';
+    document.getElementById('ctrl-res-y').value = '';
+    document.getElementById('ctrl-res-ads').value = '';
+    return;
+  }
+
+  const normX = ctrlNormalize(srcX, srcGame.scale_x);
+  const normY = isNaN(srcY) ? normX : ctrlNormalize(srcY, srcGame.scale_y);
+  const normAds = isNaN(srcAds) ? 1 : ctrlNormalize(srcAds, srcGame.ads_scale);
+
+  document.getElementById('ctrl-res-x').value = ctrlDenormalize(normX, tgtGame.scale_x).toFixed(1);
+  document.getElementById('ctrl-res-y').value = ctrlDenormalize(normY, tgtGame.scale_y).toFixed(1);
+  document.getElementById('ctrl-res-ads').value = ctrlDenormalize(normAds, tgtGame.ads_scale).toFixed(2);
+}
+
+function ctrlConvertAll() {
+  const srcId = document.getElementById('ctrl-src-game').value;
+  const srcX = parseFloat(document.getElementById('ctrl-src-x').value);
+  const srcY = parseFloat(document.getElementById('ctrl-src-y').value);
+  const srcAds = parseFloat(document.getElementById('ctrl-src-ads').value);
+  const srcGame = CTRL_GAMES.find(x => x.id === srcId);
+
+  if (!srcGame || isNaN(srcX) || srcX <= 0) {
+    alert('Please select a source game and enter your X sensitivity first.');
+    return;
+  }
+
+  const normX = ctrlNormalize(srcX, srcGame.scale_x);
+  const normY = isNaN(srcY) ? normX : ctrlNormalize(srcY, srcGame.scale_y);
+  const normAds = isNaN(srcAds) ? 1 : ctrlNormalize(srcAds, srcGame.ads_scale);
+
+  const tbody = document.getElementById('ctrl-bulk-tbody');
+  tbody.innerHTML = '';
+
+  CTRL_GAMES.forEach((g, i) => {
+    const resX = ctrlDenormalize(normX, g.scale_x);
+    const resY = ctrlDenormalize(normY, g.scale_y);
+    const resAds = ctrlDenormalize(normAds, g.ads_scale);
+    const isSource = g.id === srcId;
+
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = `${i * 0.03}s`;
+    if (isSource) tr.style.background = 'rgba(245,166,35,0.04)';
+
+    tr.innerHTML = `
+      <td>
+        <div class="game-row-name">
+          <div class="game-icon-sm" style="background:var(--surface2)">${g.icon}</div>
+          <div>
+            <div class="game-name">${g.name} ${isSource ? '<span style="color:var(--accent);font-size:10px;font-family:\'Courier New\',monospace;margin-left:4px">SOURCE</span>' : ''}</div>
+            <div class="game-genre">${g.genre}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="sens-val">${resX.toFixed(1)} / ${resY.toFixed(1)}</span></td>
+      <td><span class="cm360-val">${resAds.toFixed(2)}</span></td>
+      <td>
+        <button class="copy-btn" onclick="copyVal(this, '${resX.toFixed(1)}')">COPY X</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('ctrl-bulk-results').style.display = 'block';
+  document.getElementById('ctrl-empty-state').style.display = 'none';
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  populateSelects();
+});
+</script>
+</body>
+</html>
