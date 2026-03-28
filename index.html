@@ -8,6 +8,9 @@
 /* ─── Reset & Base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
 :root {
   --bg:          #f0f2f5;
   --surface:     #ffffff;
@@ -58,7 +61,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .page {
@@ -185,7 +188,7 @@ select {
 input:focus, select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-  background: #fff;
+  background: var(--surface);
 }
 input[readonly] { background: var(--surface-alt); color: var(--text-2); cursor: default; }
 input[readonly]:focus { box-shadow: none; border-color: var(--border); }
@@ -309,40 +312,58 @@ tbody tr.row-source:hover td { background: #dbeafe; }
 .empty-state p { font-size: 14px; line-height: 1.7; }
 
 /* ─── Theme toggle ──────────────────────────────────────────────── */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 13px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.theme-toggle:hover {
-  color: var(--text-1);
-  border-color: var(--text-3);
-}
-.theme-toggle .toggle-icon {
-  font-size: 15px;
-  line-height: 1;
-  transition: transform 0.3s ease;
-}
-html.dark .theme-toggle .toggle-icon {
-  transform: rotate(180deg);
-}
 .header-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
+}
+
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-switch-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.2px;
+}
+
+/* The track */
+.toggle-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+html.dark .toggle-track {
+  background: var(--accent);
+}
+
+/* The thumb */
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+
+html.dark .toggle-thumb {
+  transform: translateX(18px);
 }
 
 /* ─── Responsive ────────────────────────────────────────────────── */
@@ -369,10 +390,13 @@ html.dark .theme-toggle .toggle-icon {
       <div class="wordmark-badge">Beta</div>
     </div>
     <div class="header-right">
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-        <span class="toggle-icon" id="theme-icon">☀️</span>
-        <span id="theme-label">Light</span>
-      </button>
+      <div class="theme-switch" onclick="toggleTheme()" role="button" aria-label="Toggle dark mode" tabindex="0">
+        <span class="theme-switch-label" id="theme-label">Light</span>
+        <div class="toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span class="theme-switch-label" id="theme-label-dark">Dark</span>
+      </div>
       <div class="site-tagline">Match your muscle memory across any game.<br>Mouse &amp; keyboard · Controller</div>
     </div>
   </header>
@@ -966,14 +990,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function applyDark() {
   document.documentElement.classList.add('dark');
-  document.getElementById('theme-icon').textContent = '🌙';
-  document.getElementById('theme-label').textContent = 'Dark';
 }
 
 function applyLight() {
   document.documentElement.classList.remove('dark');
-  document.getElementById('theme-icon').textContent = '☀️';
-  document.getElementById('theme-label').textContent = 'Light';
 }
 
 function toggleTheme() {
