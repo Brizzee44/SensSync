@@ -5,542 +5,561 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SensSync — Game Sensitivity Converter</title>
 <style>
+/* ─── Reset & Base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --surface2: #f5f5f7;
-  --border: #e0e0e5;
-  --border-focus: #0071e3;
-  --text: #1d1d1f;
-  --text-2: #3a3a3c;
-  --text-3: #6e6e73;
-  --accent: #0071e3;
-  --accent-light: #e8f1fc;
-  --green: #28a745;
-  --green-light: #e6f4ea;
-  --orange: #f5a623;
-  --orange-light: #fef6e7;
-  --red: #d93025;
-  --red-light: #fce8e6;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --bg:          #f0f2f5;
+  --surface:     #ffffff;
+  --surface-alt: #f7f8fa;
+  --border:      #e2e5ea;
+  --text-1:      #111827;
+  --text-2:      #374151;
+  --text-3:      #6b7280;
+  --text-4:      #9ca3af;
+  --accent:      #2563eb;
+  --accent-h:    #1d4ed8;
+  --accent-bg:   #eff6ff;
+  --accent-bdr:  #bfdbfe;
+  --green:       #16a34a;
+  --green-bg:    #f0fdf4;
+  --amber:       #d97706;
+  --amber-bg:    #fffbeb;
+  --r:           10px;
+  --r-sm:        6px;
 }
+
+html { font-size: 15px; }
 
 body {
   background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-  font-size: 15px;
+  color: var(--text-1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Layout ── */
-.page { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
-
-header { margin-bottom: 40px; }
-.logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-.logo span { color: var(--accent); }
-.tagline { font-size: 13px; color: var(--text-3); margin-top: 2px; }
-
-/* ── Tabs ── */
-.tabs {
-  display: inline-flex;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 28px;
-  gap: 2px;
-}
-.tab {
-  padding: 7px 20px;
-  border: none;
-  background: none;
-  border-radius: 7px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  font-family: inherit;
-}
-.tab:hover { color: var(--text); }
-.tab.active { background: var(--accent); color: #fff; }
-
-/* ── Panel / Card ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 52px 24px 100px;
 }
 
-/* ── Tab panels ── */
+/* ─── Header ────────────────────────────────────────────────────── */
+.site-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 44px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.wordmark { display: flex; align-items: baseline; gap: 10px; }
+.wordmark-name { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--text-1); }
+.wordmark-name em { font-style: normal; color: var(--accent); }
+.wordmark-badge {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-4);
+  text-transform: uppercase; border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 7px; background: var(--surface);
+}
+.site-tagline { font-size: 13px; color: var(--text-3); text-align: right; line-height: 1.4; }
+
+/* ─── Tabs ──────────────────────────────────────────────────────── */
+.tab-nav {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 32px;
+}
+.tab-btn {
+  padding: 10px 22px;
+  border: none; background: none; font-family: inherit;
+  font-size: 14px; font-weight: 500; color: var(--text-3);
+  cursor: pointer; transition: color 0.15s;
+  position: relative; bottom: -2px;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn:hover { color: var(--text-1); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* ── Converter layout ── */
-.converter-wrap { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 12px; align-items: start; margin-bottom: 20px; }
-.arrow-col { display: flex; align-items: flex-start; justify-content: center; padding-top: 44px; }
-.arrow { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 14px; }
-
-/* ── Form ── */
-.card-header {
-  padding: 16px 20px 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 12px;
+/* ─── Converter card — ONE unified card, two equal halves ────────── */
+.converter-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.06);
+  margin-bottom: 20px;
+  overflow: hidden;
 }
-.card-body { padding: 0 20px 20px; }
 
-.field { margin-bottom: 14px; }
+/* Grid: left half | thin divider column | right half */
+.converter-body {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr;
+  /* Both halves stretch to the same height automatically */
+}
+
+.conv-side {
+  padding: 28px 28px 32px;
+  /* Both sides are identical padding — no size drift */
+}
+
+.conv-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--surface-alt);
+  /* Vertically centered arrow, always mid-card regardless of height */
+}
+
+.arrow-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); flex-shrink: 0;
+}
+
+.conv-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--text-4);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.conv-label-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-4); flex-shrink: 0; }
+.conv-side.source .conv-label-dot { background: var(--accent); }
+.conv-side.target .conv-label-dot { background: var(--green); }
+
+/* ─── Form ──────────────────────────────────────────────────────── */
+.field { margin-bottom: 16px; }
 .field:last-child { margin-bottom: 0; }
-.field-row { display: grid; gap: 12px; margin-bottom: 14px; }
-.field-row.cols-2 { grid-template-columns: 1fr 1fr; }
-.field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.field-grid { display: grid; gap: 12px; margin-bottom: 16px; }
+.field-grid:last-child { margin-bottom: 0; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
 
 label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-3);
-  margin-bottom: 5px;
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text-3); margin-bottom: 6px; letter-spacing: 0.2px;
 }
 
 input, select {
-  width: 100%;
-  padding: 9px 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  appearance: none;
-  -webkit-appearance: none;
+  display: block; width: 100%; padding: 9px 11px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); font-size: 14px; font-family: inherit;
+  color: var(--text-1); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  appearance: none; -webkit-appearance: none; line-height: 1.4;
 }
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236e6e73' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 11px center;
-  padding-right: 30px;
-  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 30px; cursor: pointer;
 }
 input:focus, select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(0,113,227,0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
   background: #fff;
 }
-input[readonly] {
-  background: var(--surface2);
-  color: var(--text-2);
-  cursor: default;
-}
+input[readonly] { background: var(--surface-alt); color: var(--text-2); cursor: default; }
 input[readonly]:focus { box-shadow: none; border-color: var(--border); }
 
-/* Output fields */
-.output-field input {
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-light);
-  border-color: transparent;
+.field.is-output input {
+  background: var(--accent-bg); border-color: var(--accent-bdr);
+  color: var(--accent); font-weight: 700; font-size: 15px;
 }
 
-/* ── Divider ── */
-.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.field-sep { height: 1px; background: var(--border); margin: 20px 0; }
 
-/* ── Convert button ── */
-.btn-primary {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  margin-bottom: 24px;
-  letter-spacing: -0.1px;
-}
-.btn-primary:hover { background: #0062c9; }
-.btn-primary:active { transform: scale(0.99); }
-
-/* ── Stats bar ── */
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.stat {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-}
-.stat-label { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.stat-value { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
-.stat-unit { font-size: 12px; font-weight: 400; color: var(--text-3); margin-left: 2px; }
-
-/* ── Results table ── */
-.results-card { overflow: hidden; }
-.results-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.results-title { font-size: 14px; font-weight: 600; color: var(--text); }
-.results-count { font-size: 12px; color: var(--text-3); }
-
-table { width: 100%; border-collapse: collapse; }
-th {
-  text-align: left;
-  padding: 10px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-}
-td { padding: 13px 20px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #fafafa; }
-tr.is-source td { background: var(--accent-light); }
-tr.is-source:hover td { background: #ddeeff; }
-
-.game-name { font-weight: 500; color: var(--text); }
-.game-genre { font-size: 12px; color: var(--text-3); margin-top: 1px; }
-.source-tag {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-light);
-  border: 1px solid rgba(0,113,227,0.2);
-  border-radius: 4px;
-  padding: 1px 6px;
-  margin-left: 6px;
-  vertical-align: middle;
-  letter-spacing: 0.3px;
+.field-notice {
+  display: none; margin-top: 12px; padding: 10px 13px;
+  border-radius: var(--r-sm); font-size: 12.5px; line-height: 1.55;
+  border: 1px solid; border-color: #fde68a;
+  background: var(--amber-bg); color: var(--amber);
 }
 
-.sens-value { font-weight: 700; font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; }
-.warn-tag {
-  display: inline-block;
-  font-size: 11px;
-  color: var(--orange);
-  background: var(--orange-light);
-  border-radius: 4px;
-  padding: 1px 6px;
-  margin-left: 6px;
+/* ─── Footer bar inside card ────────────────────────────────────── */
+.converter-footer {
+  padding: 14px 28px; border-top: 1px solid var(--border);
+  background: var(--surface-alt);
+  display: flex; align-items: center; justify-content: flex-end; gap: 16px;
 }
-.clamped-note { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.footer-cm360 { font-size: 13px; color: var(--text-3); margin-right: auto; }
+.footer-cm360 strong { color: var(--text-1); font-weight: 600; }
 
-.copy-btn {
-  padding: 5px 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: all 0.15s;
+/* ─── Button ────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border: none; border-radius: var(--r-sm);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s, transform 0.1s;
   white-space: nowrap;
 }
-.copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-.copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-light); }
-
-/* ── Empty state ── */
-.empty { text-align: center; padding: 56px 20px; color: var(--text-3); }
-.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
-.empty p { font-size: 14px; line-height: 1.6; }
-
-/* ── Notice / alert ── */
-.notice {
-  font-size: 13px;
-  color: var(--text-3);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  margin-top: 10px;
+.btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 1px 2px rgba(37,99,235,.2), 0 3px 8px rgba(37,99,235,.15);
 }
+.btn-primary:hover { background: var(--accent-h); }
+.btn-primary:active { transform: scale(0.98); }
 
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  .converter-wrap { grid-template-columns: 1fr; }
-  .arrow-col { display: none; }
-  .stats-bar { grid-template-columns: 1fr; }
-  .field-row.cols-3 { grid-template-columns: 1fr 1fr; }
+/* ─── Stats strip ───────────────────────────────────────────────── */
+.stats-strip {
+  display: none;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.stat-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-4); margin-bottom: 6px;
+}
+.stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-1); line-height: 1; }
+.stat-unit  { font-size: 13px; font-weight: 500; color: var(--text-3); margin-left: 3px; }
+
+/* ─── Results table ─────────────────────────────────────────────── */
+.results-wrap {
+  display: none;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.06);
+}
+.results-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.results-head-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.results-head-meta  { font-size: 12px; color: var(--text-4); font-weight: 500; }
+
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+th {
+  padding: 10px 24px; text-align: left;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-4);
+}
+td { padding: 14px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { transition: background 0.1s; }
+tbody tr:hover td { background: var(--surface-alt); }
+tbody tr.row-source td { background: var(--accent-bg); }
+tbody tr.row-source:hover td { background: #dbeafe; }
+
+.cell-game-name {
+  font-size: 14px; font-weight: 600; color: var(--text-1);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.cell-game-genre { font-size: 12px; color: var(--text-4); margin-top: 2px; }
+
+.tag {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
+  text-transform: uppercase; padding: 2px 7px;
+  border-radius: 4px; border: 1px solid; line-height: 1.4;
+}
+.tag-source { color: var(--accent); background: var(--accent-bg); border-color: var(--accent-bdr); }
+.tag-warn   { color: var(--amber); background: var(--amber-bg);   border-color: #fde68a; }
+
+.cell-sens { font-size: 15px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.cell-note { font-size: 11.5px; color: var(--text-4); margin-top: 3px; }
+.cell-cm   { font-size: 13.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+.copy-btn {
+  padding: 6px 14px; background: var(--surface-alt);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  color: var(--text-3); cursor: pointer; transition: all 0.15s;
+}
+.copy-btn:hover { background: var(--accent-bg); border-color: var(--accent-bdr); color: var(--accent); }
+.copy-btn.copied { background: var(--green-bg); border-color: #bbf7d0; color: var(--green); }
+
+/* ─── Empty state ───────────────────────────────────────────────── */
+.empty-state { padding: 60px 24px; text-align: center; color: var(--text-4); }
+.empty-state p { font-size: 14px; line-height: 1.7; }
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 660px) {
+  .converter-body { grid-template-columns: 1fr; }
+  .conv-divider { display: none; }
+  .conv-side { padding: 22px; }
+  .conv-side.source { border-bottom: 1px solid var(--border); }
+  .site-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .site-tagline { text-align: left; }
+  .stats-strip { grid-template-columns: 1fr; }
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  th:nth-child(3), td:nth-child(3) { display: none; }
 }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <header>
-    <div class="logo">Sens<span>Sync</span></div>
-    <div class="tagline">Game sensitivity converter — mouse & controller</div>
+  <header class="site-header">
+    <div class="wordmark">
+      <div class="wordmark-name">Sens<em>Sync</em></div>
+      <div class="wordmark-badge">Beta</div>
+    </div>
+    <div class="site-tagline">Match your muscle memory across any game.<br>Mouse &amp; keyboard · Controller</div>
   </header>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('mouse')" id="tab-mouse">Mouse & Keyboard</button>
-    <button class="tab" onclick="switchTab('controller')" id="tab-controller">Controller</button>
-  </div>
+  <nav class="tab-nav">
+    <button class="tab-btn active" id="tab-mouse"      onclick="switchTab('mouse')">Mouse &amp; Keyboard</button>
+    <button class="tab-btn"        id="tab-controller" onclick="switchTab('controller')">Controller</button>
+  </nav>
 
-  <!-- ═══════════════════════════════════════════
+  <!-- ══════════════════════════════════════
        MOUSE TAB
-  ════════════════════════════════════════════ -->
-  <div id="panel-mouse" class="tab-panel active">
+  ══════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-mouse">
 
-    <div class="converter-wrap">
+    <div class="converter-card">
+      <div class="converter-body">
 
-      <!-- Source -->
-      <div class="card">
-        <div class="card-header">Source Game</div>
-        <div class="card-body">
+        <!-- ── Source ── -->
+        <div class="conv-side source">
+          <div class="conv-label"><span class="conv-label-dot"></span>Source — your current game</div>
+
           <div class="field">
-            <label>Game</label>
-            <select id="m-src-game" onchange="mSrcGameChange()">
-              <option value="">Select a game...</option>
-            </select>
+            <label for="m-src-game">Game</label>
+            <select id="m-src-game" onchange="mSrcGameChange()"><option value="">Select a game…</option></select>
           </div>
-          <div class="field-row cols-2">
+
+          <div class="field-grid g2">
             <div class="field">
-              <label>Mouse DPI</label>
-              <input type="number" id="m-src-dpi" value="800" min="100" max="32000" step="100" oninput="mAutoConvert()">
+              <label for="m-src-dpi">Mouse DPI</label>
+              <input type="number" id="m-src-dpi" value="800" min="100" max="32000" step="100" oninput="mLiveConvert()">
             </div>
             <div class="field">
-              <label>Sensitivity</label>
-              <input type="number" id="m-src-sens" placeholder="e.g. 0.35" step="any" oninput="mAutoConvert()">
+              <label for="m-src-sens">Sensitivity</label>
+              <input type="number" id="m-src-sens" placeholder="e.g. 0.35" step="any" min="0" oninput="mLiveConvert()">
             </div>
           </div>
-          <div id="m-src-extra" style="display:none">
-            <div class="field-row cols-2" id="m-src-xy-row" style="display:none">
-              <div class="field">
-                <label>Horizontal Sens</label>
-                <input type="number" id="m-src-x" placeholder="X axis" step="any" oninput="mAutoConvert()">
-              </div>
-              <div class="field">
-                <label>Vertical Sens</label>
-                <input type="number" id="m-src-y" placeholder="Y axis" step="any" oninput="mAutoConvert()">
-              </div>
+
+          <div class="field-grid g2" id="m-src-xy" style="display:none">
+            <div class="field">
+              <label for="m-src-x">Horizontal (X)</label>
+              <input type="number" id="m-src-x" placeholder="X axis" step="any" oninput="mLiveConvert()">
             </div>
-            <div class="field" id="m-src-scope-row" style="display:none">
-              <label>Scope / ADS Sensitivity</label>
-              <input type="number" id="m-src-scope" placeholder="Scope multiplier" step="any" oninput="mAutoConvert()">
+            <div class="field">
+              <label for="m-src-y">Vertical (Y)</label>
+              <input type="number" id="m-src-y" placeholder="Y axis" step="any" oninput="mLiveConvert()">
             </div>
           </div>
+
+          <div class="field" id="m-src-scope-wrap" style="display:none">
+            <label for="m-src-scope">Scope / ADS Sensitivity</label>
+            <input type="number" id="m-src-scope" placeholder="Multiplier" step="any" min="0" oninput="mLiveConvert()">
+          </div>
+
+          <div class="field-sep"></div>
+
           <div class="field">
-            <label>cm / 360°</label>
-            <input type="number" id="m-src-cm360" readonly placeholder="Auto-calculated">
+            <label>cm / 360° <span style="font-weight:400;color:var(--text-4)">(auto-calculated)</span></label>
+            <input type="number" id="m-src-cm360" readonly placeholder="Enter settings above">
           </div>
         </div>
-      </div>
 
-      <div class="arrow-col"><div class="arrow">→</div></div>
-
-      <!-- Target -->
-      <div class="card">
-        <div class="card-header">Target Game</div>
-        <div class="card-body">
-          <div class="field">
-            <label>Game</label>
-            <select id="m-tgt-game" onchange="mTgtGameChange()">
-              <option value="">Select a game...</option>
-            </select>
+        <!-- ── Arrow ── -->
+        <div class="conv-divider">
+          <div class="arrow-circle">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
-          <div class="field-row cols-2">
+        </div>
+
+        <!-- ── Target ── -->
+        <div class="conv-side target">
+          <div class="conv-label"><span class="conv-label-dot"></span>Target — game you're switching to</div>
+
+          <div class="field">
+            <label for="m-tgt-game">Game</label>
+            <select id="m-tgt-game" onchange="mTgtGameChange()"><option value="">Select a game…</option></select>
+          </div>
+
+          <div class="field-grid g2">
             <div class="field">
-              <label>Mouse DPI</label>
-              <input type="number" id="m-tgt-dpi" value="800" min="100" max="32000" step="100" oninput="mAutoConvert()">
+              <label for="m-tgt-dpi">Mouse DPI</label>
+              <input type="number" id="m-tgt-dpi" value="800" min="100" max="32000" step="100" oninput="mLiveConvert()">
             </div>
-            <div class="output-field field">
-              <label>Sensitivity</label>
+            <div class="field is-output">
+              <label for="m-tgt-sens">Sensitivity</label>
               <input type="number" id="m-tgt-sens" readonly placeholder="—">
             </div>
           </div>
-          <div id="m-tgt-extra" style="display:none">
-            <div class="field-row cols-2" id="m-tgt-xy-row" style="display:none">
-              <div class="output-field field">
-                <label>Horizontal Sens</label>
-                <input type="number" id="m-tgt-x" readonly placeholder="—">
-              </div>
-              <div class="output-field field">
-                <label>Vertical Sens</label>
-                <input type="number" id="m-tgt-y" readonly placeholder="—">
-              </div>
+
+          <div class="field-grid g2" id="m-tgt-xy" style="display:none">
+            <div class="field is-output">
+              <label for="m-tgt-x">Horizontal (X)</label>
+              <input type="number" id="m-tgt-x" readonly placeholder="—">
             </div>
-            <div class="output-field field" id="m-tgt-scope-row" style="display:none">
-              <label>Scope / ADS Sensitivity</label>
-              <input type="number" id="m-tgt-scope" readonly placeholder="—">
+            <div class="field is-output">
+              <label for="m-tgt-y">Vertical (Y)</label>
+              <input type="number" id="m-tgt-y" readonly placeholder="—">
             </div>
           </div>
+
+          <div class="field is-output" id="m-tgt-scope-wrap" style="display:none">
+            <label for="m-tgt-scope">Scope / ADS Sensitivity</label>
+            <input type="number" id="m-tgt-scope" readonly placeholder="—">
+          </div>
+
+          <div class="field-sep"></div>
+
           <div class="field">
-            <label>cm / 360°</label>
-            <input type="number" id="m-tgt-cm360" readonly placeholder="Matches source">
+            <label>cm / 360° <span style="font-weight:400;color:var(--text-4)">(should match source)</span></label>
+            <input type="number" id="m-tgt-cm360" readonly placeholder="—">
           </div>
-          <div id="m-tgt-notice" class="notice" style="display:none"></div>
+
+          <div class="field-notice" id="m-notice"></div>
         </div>
+
+      </div><!-- /converter-body -->
+
+      <div class="converter-footer">
+        <div class="footer-cm360" id="m-footer-cm360" style="display:none">
+          Universal speed: <strong id="m-footer-val">—</strong> cm / 360°
+        </div>
+        <button class="btn btn-primary" onclick="mConvertAll()">
+          Convert to All Games
+        </button>
       </div>
+    </div><!-- /converter-card -->
 
-    </div><!-- /converter-wrap -->
-
-    <button class="btn-primary" onclick="mConvertAll()">Convert to All Games</button>
-
-    <!-- Stats bar (shown after convert) -->
-    <div class="stats-bar" id="m-stats" style="display:none">
-      <div class="stat">
-        <div class="stat-label">cm / 360°</div>
+    <div class="stats-strip" id="m-stats">
+      <div class="stat-card">
+        <div class="stat-label">Your cm / 360°</div>
         <div class="stat-value" id="m-stat-cm360">—<span class="stat-unit">cm</span></div>
       </div>
-      <div class="stat">
+      <div class="stat-card">
         <div class="stat-label">Effective DPI</div>
         <div class="stat-value" id="m-stat-edpi">—</div>
       </div>
-      <div class="stat">
-        <div class="stat-label">Source</div>
-        <div class="stat-value" id="m-stat-src" style="font-size:14px">—</div>
+      <div class="stat-card">
+        <div class="stat-label">Source Game</div>
+        <div class="stat-value" id="m-stat-src" style="font-size:15px">—</div>
       </div>
     </div>
 
-    <!-- Results table -->
-    <div class="card results-card" id="m-results" style="display:none">
-      <div class="results-header">
-        <div class="results-title">All Games</div>
-        <div class="results-count" id="m-results-count"></div>
+    <div class="results-wrap" id="m-results">
+      <div class="results-head">
+        <div class="results-head-title">Sensitivity for All Games</div>
+        <div class="results-head-meta" id="m-results-meta"></div>
       </div>
       <table>
-        <thead>
-          <tr>
-            <th>Game</th>
-            <th>Sensitivity</th>
-            <th>cm / 360°</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>Game</th><th>Sensitivity</th><th>cm / 360°</th><th></th></tr></thead>
         <tbody id="m-tbody"></tbody>
       </table>
     </div>
 
-    <div class="empty" id="m-empty">
-      <div class="empty-icon">🖱</div>
-      <p>Select your source game, enter your DPI and sensitivity,<br>then tap Convert to see all recommendations.</p>
+    <div class="empty-state" id="m-empty">
+      <p>Select your current game, enter your DPI and in-game sensitivity,<br>then click <strong>Convert to All Games</strong> to see every recommendation.</p>
     </div>
 
   </div><!-- /panel-mouse -->
 
-  <!-- ═══════════════════════════════════════════
+
+  <!-- ══════════════════════════════════════
        CONTROLLER TAB
-  ════════════════════════════════════════════ -->
-  <div id="panel-controller" class="tab-panel">
+  ══════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-controller">
 
-    <div class="converter-wrap">
+    <div class="converter-card">
+      <div class="converter-body">
 
-      <!-- Source -->
-      <div class="card">
-        <div class="card-header">Source Game</div>
-        <div class="card-body">
+        <div class="conv-side source">
+          <div class="conv-label"><span class="conv-label-dot"></span>Source — your current game</div>
+
           <div class="field">
-            <label>Game</label>
-            <select id="c-src-game" onchange="cSrcGameChange()">
-              <option value="">Select a game...</option>
-            </select>
+            <label for="c-src-game">Game</label>
+            <select id="c-src-game" onchange="cSrcGameChange()"><option value="">Select a game…</option></select>
           </div>
-          <div id="c-src-fields">
-            <div class="field-row cols-2">
-              <div class="field">
-                <label>Horizontal (X)</label>
-                <input type="number" id="c-src-x" placeholder="e.g. 7" step="any" oninput="cAutoConvert()">
-              </div>
-              <div class="field">
-                <label>Vertical (Y)</label>
-                <input type="number" id="c-src-y" placeholder="e.g. 7" step="any" oninput="cAutoConvert()">
-              </div>
+
+          <div class="field-grid g2">
+            <div class="field">
+              <label for="c-src-x">Horizontal (X)</label>
+              <input type="number" id="c-src-x" placeholder="e.g. 7" step="any" min="0" oninput="cLiveConvert()">
             </div>
-            <div id="c-src-scope-wrap" style="display:none" class="field">
-              <label>Scope / ADS Sensitivity</label>
-              <input type="number" id="c-src-scope" placeholder="e.g. 1.0" step="any" oninput="cAutoConvert()">
+            <div class="field">
+              <label for="c-src-y">Vertical (Y)</label>
+              <input type="number" id="c-src-y" placeholder="e.g. 7" step="any" min="0" oninput="cLiveConvert()">
             </div>
+          </div>
+
+          <div class="field" id="c-src-scope-wrap" style="display:none">
+            <label for="c-src-scope">Scope / ADS Sensitivity</label>
+            <input type="number" id="c-src-scope" placeholder="e.g. 1.0" step="any" min="0" oninput="cLiveConvert()">
+          </div>
+
+          <div class="field-sep"></div>
+          <p style="font-size:13px;color:var(--text-4)">Values are normalized across each game's sensitivity scale.</p>
+        </div>
+
+        <div class="conv-divider">
+          <div class="arrow-circle">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
-      </div>
 
-      <div class="arrow-col"><div class="arrow">→</div></div>
+        <div class="conv-side target">
+          <div class="conv-label"><span class="conv-label-dot"></span>Target — game you're switching to</div>
 
-      <!-- Target -->
-      <div class="card">
-        <div class="card-header">Target Game</div>
-        <div class="card-body">
           <div class="field">
-            <label>Game</label>
-            <select id="c-tgt-game" onchange="cTgtGameChange()">
-              <option value="">Select a game...</option>
-            </select>
+            <label for="c-tgt-game">Game</label>
+            <select id="c-tgt-game" onchange="cTgtGameChange()"><option value="">Select a game…</option></select>
           </div>
-          <div class="field-row cols-2">
-            <div class="output-field field">
-              <label>Horizontal (X)</label>
+
+          <div class="field-grid g2">
+            <div class="field is-output">
+              <label for="c-tgt-x">Horizontal (X)</label>
               <input type="number" id="c-tgt-x" readonly placeholder="—">
             </div>
-            <div class="output-field field">
-              <label>Vertical (Y)</label>
+            <div class="field is-output">
+              <label for="c-tgt-y">Vertical (Y)</label>
               <input type="number" id="c-tgt-y" readonly placeholder="—">
             </div>
           </div>
-          <div class="output-field field" id="c-tgt-scope-wrap" style="display:none">
-            <label>Scope / ADS Sensitivity</label>
+
+          <div class="field is-output" id="c-tgt-scope-wrap" style="display:none">
+            <label for="c-tgt-scope">Scope / ADS Sensitivity</label>
             <input type="number" id="c-tgt-scope" readonly placeholder="—">
           </div>
-          <div id="c-tgt-notice" class="notice" style="display:none"></div>
+
+          <div class="field-sep"></div>
+          <p style="font-size:13px;color:var(--text-4)">Results are rounded to each game's allowed precision.</p>
         </div>
+
       </div>
 
+      <div class="converter-footer">
+        <button class="btn btn-primary" onclick="cConvertAll()">Convert to All Games</button>
+      </div>
     </div>
 
-    <button class="btn-primary" onclick="cConvertAll()">Convert to All Games</button>
-
-    <div class="card results-card" id="c-results" style="display:none">
-      <div class="results-header">
-        <div class="results-title">All Games</div>
-        <div class="results-count" id="c-results-count"></div>
+    <div class="results-wrap" id="c-results">
+      <div class="results-head">
+        <div class="results-head-title">Controller Settings for All Games</div>
+        <div class="results-head-meta" id="c-results-meta"></div>
       </div>
       <table>
-        <thead>
-          <tr>
-            <th>Game</th>
-            <th>Horizontal / Vertical</th>
-            <th>Scope / ADS</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>Game</th><th>Horizontal / Vertical</th><th>Scope / ADS</th><th></th></tr></thead>
         <tbody id="c-tbody"></tbody>
       </table>
     </div>
 
-    <div class="empty" id="c-empty">
-      <div class="empty-icon">🎮</div>
-      <p>Select your source game, enter your controller sensitivity,<br>then tap Convert to see all recommendations.</p>
+    <div class="empty-state" id="c-empty">
+      <p>Select your current game, enter your controller sensitivity values,<br>then click <strong>Convert to All Games</strong> to see every recommendation.</p>
     </div>
 
   </div><!-- /panel-controller -->
@@ -548,459 +567,285 @@ tr.is-source:hover td { background: #ddeeff; }
 </div><!-- /page -->
 
 <script>
-// ═══════════════════════════════════════════════
-// GAME DATABASE
-// ═══════════════════════════════════════════════
-
-// Mouse games
-// yaw: degrees per (DPI count × sens unit)
-// decimals: how many decimal places the game supports (for rounding)
-// hasXY: game has separate horizontal/vertical sensitivity
-// hasScope: game has a scope/ADS sensitivity field
-// scopeIsMultiplier: true = scope is a multiplier (e.g. 1.0x), false = absolute value
+/* ════════════════════════════════════════════
+   GAME DATABASE
+════════════════════════════════════════════ */
 const MOUSE_GAMES = [
-  {
-    id: 'cs2', name: 'CS2 / CS:GO', genre: 'Tactical FPS',
-    yaw: 0.022, min: 0.01, max: 5, decimals: 3,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'valorant', name: 'Valorant', genre: 'Tactical FPS',
-    yaw: 0.07, min: 0.01, max: 10, decimals: 2,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.1, scopeMax: 5, scopeDecimals: 2
-  },
-  {
-    id: 'apex', name: 'Apex Legends', genre: 'Battle Royale',
-    yaw: 0.022, min: 0.01, max: 3, decimals: 2,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.1, scopeMax: 3, scopeDecimals: 2
-  },
-  {
-    id: 'overwatch2', name: 'Overwatch 2', genre: 'Hero Shooter',
-    yaw: 0.0066, min: 1, max: 100, decimals: 1,
-    hasXY: true, xMin: 1, xMax: 100, yMin: 1, yMax: 100, xDecimals: 1, yDecimals: 1,
-    hasScope: false
-  },
-  {
-    id: 'fortnite', name: 'Fortnite', genre: 'Battle Royale',
-    yaw: 0.5588, min: 0.001, max: 1, decimals: 3,
-    hasXY: true, xMin: 0.001, xMax: 1, yMin: 0.001, yMax: 1, xDecimals: 3, yDecimals: 3,
-    hasScope: true, scopeIsMultiplier: true, scopeMin: 0.001, scopeMax: 1, scopeDecimals: 3
-  },
-  {
-    id: 'warzone', name: 'Call of Duty: Warzone', genre: 'Battle Royale',
-    yaw: 0.0066, min: 1, max: 20, decimals: 1,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.01, scopeMax: 3, scopeDecimals: 2
-  },
-  {
-    id: 'mw3', name: 'Modern Warfare III', genre: 'FPS',
-    yaw: 0.0066, min: 1, max: 20, decimals: 1,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.01, scopeMax: 3, scopeDecimals: 2
-  },
-  {
-    id: 'r6', name: 'Rainbow Six Siege', genre: 'Tactical FPS',
-    yaw: 0.00572, min: 1, max: 100, decimals: 0,   // whole numbers only
-    hasXY: true, xMin: 1, xMax: 100, yMin: 1, yMax: 100, xDecimals: 0, yDecimals: 0,
-    hasScope: true, scopeIsMultiplier: false, scopeMin: 1, scopeMax: 100, scopeDecimals: 0
-  },
-  {
-    id: 'pubg', name: 'PUBG', genre: 'Battle Royale',
-    yaw: 0.0733, min: 0.01, max: 3, decimals: 2,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.01, scopeMax: 3, scopeDecimals: 2
-  },
-  {
-    id: 'destiny2', name: 'Destiny 2', genre: 'FPS',
-    yaw: 0.01373, min: 0, max: 10, decimals: 0,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'halo', name: 'Halo Infinite', genre: 'FPS',
-    yaw: 0.01746, min: 1, max: 10, decimals: 1,
-    hasXY: false, hasScope: true, scopeIsMultiplier: true, scopeMin: 0.1, scopeMax: 5, scopeDecimals: 1
-  },
-  {
-    id: 'tarkov', name: 'Escape from Tarkov', genre: 'FPS',
-    yaw: 0.02, min: 0.01, max: 2, decimals: 2,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'tf2', name: 'Team Fortress 2', genre: 'FPS',
-    yaw: 0.022, min: 0.01, max: 10, decimals: 3,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'quake', name: 'Quake Champions', genre: 'Arena FPS',
-    yaw: 0.022, min: 0.01, max: 10, decimals: 3,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'battlefield2042', name: 'Battlefield 2042', genre: 'FPS',
-    yaw: 0.006, min: 1, max: 100, decimals: 0,
-    hasXY: true, xMin: 1, xMax: 100, yMin: 1, yMax: 100, xDecimals: 0, yDecimals: 0,
-    hasScope: true, scopeIsMultiplier: true, scopeMin: 0.1, scopeMax: 2, scopeDecimals: 2
-  },
-  {
-    id: 'hunt', name: 'Hunt: Showdown', genre: 'FPS',
-    yaw: 0.03819, min: 0.5, max: 5, decimals: 2,
-    hasXY: false, hasScope: false
-  },
-  {
-    id: 'paladins', name: 'Paladins', genre: 'Hero Shooter',
-    yaw: 0.025, min: 10, max: 150, decimals: 0,
-    hasXY: false, hasScope: false
-  },
+  { id:'cs2',        name:'CS2 / CS:GO',           genre:'Tactical FPS',    yaw:0.022,   min:0.01,  max:5,    dec:3, hasXY:false, hasScope:false },
+  { id:'valorant',   name:'Valorant',               genre:'Tactical FPS',    yaw:0.07,    min:0.01,  max:10,   dec:2, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:5,   scopeDec:2 },
+  { id:'apex',       name:'Apex Legends',           genre:'Battle Royale',   yaw:0.022,   min:0.01,  max:3,    dec:2, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:3,   scopeDec:2 },
+  { id:'ow2',        name:'Overwatch 2',            genre:'Hero Shooter',    yaw:0.0066,  min:1,     max:100,  dec:1, hasXY:true,  xMin:1,xMax:100,xDec:1,yMin:1,yMax:100,yDec:1, hasScope:false },
+  { id:'fortnite',   name:'Fortnite',               genre:'Battle Royale',   yaw:0.5588,  min:0.001, max:1,    dec:3, hasXY:true,  xMin:0.001,xMax:1,xDec:3,yMin:0.001,yMax:1,yDec:3, hasScope:true, scopeMin:0.001,scopeMax:1,scopeDec:3 },
+  { id:'warzone',    name:'Call of Duty: Warzone',  genre:'Battle Royale',   yaw:0.0066,  min:1,     max:20,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
+  { id:'mw3',        name:'Modern Warfare III',     genre:'FPS',             yaw:0.0066,  min:1,     max:20,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
+  { id:'r6',         name:'Rainbow Six Siege',      genre:'Tactical FPS',    yaw:0.00572, min:1,     max:100,  dec:0, hasXY:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:1,scopeMax:100,scopeDec:0 },
+  { id:'pubg',       name:'PUBG',                   genre:'Battle Royale',   yaw:0.0733,  min:0.01,  max:3,    dec:2, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
+  { id:'destiny2',   name:'Destiny 2',              genre:'FPS',             yaw:0.01373, min:0,     max:10,   dec:0, hasXY:false, hasScope:false },
+  { id:'halo',       name:'Halo Infinite',          genre:'FPS',             yaw:0.01746, min:1,     max:10,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:5,   scopeDec:1 },
+  { id:'tarkov',     name:'Escape from Tarkov',     genre:'Tactical FPS',    yaw:0.02,    min:0.01,  max:2,    dec:2, hasXY:false, hasScope:false },
+  { id:'tf2',        name:'Team Fortress 2',        genre:'FPS',             yaw:0.022,   min:0.01,  max:10,   dec:3, hasXY:false, hasScope:false },
+  { id:'quake',      name:'Quake Champions',        genre:'Arena FPS',       yaw:0.022,   min:0.01,  max:10,   dec:3, hasXY:false, hasScope:false },
+  { id:'bf2042',     name:'Battlefield 2042',       genre:'FPS',             yaw:0.006,   min:1,     max:100,  dec:0, hasXY:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:0.1,scopeMax:2,scopeDec:2 },
+  { id:'hunt',       name:'Hunt: Showdown',         genre:'FPS',             yaw:0.03819, min:0.5,   max:5,    dec:2, hasXY:false, hasScope:false },
+  { id:'paladins',   name:'Paladins',               genre:'Hero Shooter',    yaw:0.025,   min:10,    max:150,  dec:0, hasXY:false, hasScope:false },
+  { id:'splitgate',  name:'Splitgate',              genre:'Arena FPS',       yaw:0.022,   min:0.01,  max:10,   dec:2, hasXY:false, hasScope:false },
 ];
 
-// Controller games
-// scale_x/y: the max value on their sensitivity slider
-// hasScope: whether game has a separate scope/ADS sens
-// scopeScale: max value for ADS/scope
-// decimals: how many decimals their slider supports
 const CTRL_GAMES = [
-  { id: 'cs2c',      name: 'CS2',                    genre: 'Tactical FPS',   scale_x: 40,  scale_y: 40,  decimals: 0, hasScope: false },
-  { id: 'valorantc', name: 'Valorant',                genre: 'Tactical FPS',   scale_x: 10,  scale_y: 10,  decimals: 0, hasScope: true, scopeScale: 2, scopeDecimals: 1 },
-  { id: 'apexc',     name: 'Apex Legends',            genre: 'Battle Royale',  scale_x: 7,   scale_y: 7,   decimals: 0, hasScope: true, scopeScale: 3, scopeDecimals: 0 },
-  { id: 'ow2c',      name: 'Overwatch 2',             genre: 'Hero Shooter',   scale_x: 100, scale_y: 100, decimals: 0, hasScope: false },
-  { id: 'fortnitec', name: 'Fortnite',                genre: 'Battle Royale',  scale_x: 100, scale_y: 100, decimals: 0, hasScope: true, scopeScale: 2, scopeDecimals: 1 },
-  { id: 'warzonec',  name: 'Call of Duty: Warzone',   genre: 'Battle Royale',  scale_x: 20,  scale_y: 20,  decimals: 0, hasScope: true, scopeScale: 2, scopeDecimals: 2 },
-  { id: 'mw3c',      name: 'Modern Warfare III',      genre: 'FPS',            scale_x: 20,  scale_y: 20,  decimals: 0, hasScope: true, scopeScale: 2, scopeDecimals: 2 },
-  { id: 'r6c',       name: 'Rainbow Six Siege',       genre: 'Tactical FPS',   scale_x: 100, scale_y: 100, decimals: 0, hasScope: true, scopeScale: 100, scopeDecimals: 0 },
-  { id: 'haloc',     name: 'Halo Infinite',           genre: 'FPS',            scale_x: 10,  scale_y: 10,  decimals: 0, hasScope: true, scopeScale: 10, scopeDecimals: 0 },
-  { id: 'destiny2c', name: 'Destiny 2',               genre: 'FPS',            scale_x: 10,  scale_y: 10,  decimals: 0, hasScope: true, scopeScale: 10, scopeDecimals: 0 },
-  { id: 'pubgc',     name: 'PUBG',                    genre: 'Battle Royale',  scale_x: 100, scale_y: 100, decimals: 0, hasScope: true, scopeScale: 100, scopeDecimals: 0 },
-  { id: 'bf2042c',   name: 'Battlefield 2042',        genre: 'FPS',            scale_x: 100, scale_y: 100, decimals: 0, hasScope: true, scopeScale: 100, scopeDecimals: 0 },
-  { id: 'titanfallc',name: 'Titanfall 2',             genre: 'FPS',            scale_x: 10,  scale_y: 10,  decimals: 0, hasScope: true, scopeScale: 2, scopeDecimals: 1 },
+  { id:'cs2c',       name:'CS2',                  genre:'Tactical FPS',  sx:40,  sy:40,  sd:0, hasScope:false },
+  { id:'valorantc',  name:'Valorant',              genre:'Tactical FPS',  sx:10,  sy:10,  sd:0, hasScope:true,  ss:2,   ssd:1 },
+  { id:'apexc',      name:'Apex Legends',          genre:'Battle Royale', sx:7,   sy:7,   sd:0, hasScope:true,  ss:3,   ssd:0 },
+  { id:'ow2c',       name:'Overwatch 2',           genre:'Hero Shooter',  sx:100, sy:100, sd:0, hasScope:false },
+  { id:'fortnitec',  name:'Fortnite',              genre:'Battle Royale', sx:100, sy:100, sd:0, hasScope:true,  ss:2,   ssd:1 },
+  { id:'warzonec',   name:'Call of Duty: Warzone', genre:'Battle Royale', sx:20,  sy:20,  sd:0, hasScope:true,  ss:2,   ssd:2 },
+  { id:'mw3c',       name:'Modern Warfare III',    genre:'FPS',           sx:20,  sy:20,  sd:0, hasScope:true,  ss:2,   ssd:2 },
+  { id:'r6c',        name:'Rainbow Six Siege',     genre:'Tactical FPS',  sx:100, sy:100, sd:0, hasScope:true,  ss:100, ssd:0 },
+  { id:'haloc',      name:'Halo Infinite',         genre:'FPS',           sx:10,  sy:10,  sd:0, hasScope:true,  ss:10,  ssd:0 },
+  { id:'destiny2c',  name:'Destiny 2',             genre:'FPS',           sx:10,  sy:10,  sd:0, hasScope:true,  ss:10,  ssd:0 },
+  { id:'pubgc',      name:'PUBG',                  genre:'Battle Royale', sx:100, sy:100, sd:0, hasScope:true,  ss:100, ssd:0 },
+  { id:'bf2042c',    name:'Battlefield 2042',      genre:'FPS',           sx:100, sy:100, sd:0, hasScope:true,  ss:100, ssd:0 },
+  { id:'titanfallc', name:'Titanfall 2',           genre:'FPS',           sx:10,  sy:10,  sd:0, hasScope:true,  ss:2,   ssd:1 },
 ];
 
-// ═══════════════════════════════════════════════
-// MATH
-// ═══════════════════════════════════════════════
+/* ════════════════════════════════════════════
+   MATH
+════════════════════════════════════════════ */
+const getCm360     = (g, dpi, s) => (360 / (g.yaw * dpi * s)) * 2.54;
+const sensFromCm   = (g, dpi, c) => (360 * 2.54) / (g.yaw * dpi * c);
+const rd           = (v, d)      => parseFloat(v.toFixed(d));
+const clamp        = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-function getCm360(game, dpi, sens) {
-  return (360 / (game.yaw * dpi * sens)) * 2.54;
-}
-function getSensFromCm360(game, dpi, cm360) {
-  return (360 * 2.54) / (game.yaw * dpi * cm360);
-}
-function roundTo(val, decimals) {
-  return parseFloat(val.toFixed(decimals));
-}
-function clamp(val, min, max) {
-  return Math.max(min, Math.min(max, val));
-}
+/* ════════════════════════════════════════════
+   DOM HELPERS
+════════════════════════════════════════════ */
+const $        = id  => document.getElementById(id);
+const val      = id  => $(id)?.value ?? '';
+const num      = id  => parseFloat($(id)?.value);
+const setVal   = (id, v) => { if ($(id)) $(id).value = v; };
+const show     = (id, as='block') => { if ($(id)) $(id).style.display = as; };
+const hide     = id  => { if ($(id)) $(id).style.display = 'none'; };
+const toggle   = (id, cond, as='') => { if ($(id)) $(id).style.display = cond ? as : 'none'; };
 
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-
-function populateSelects() {
-  const mSrc = document.getElementById('m-src-game');
-  const mTgt = document.getElementById('m-tgt-game');
-  MOUSE_GAMES.forEach(g => {
-    mSrc.add(new Option(g.name, g.id));
-    mTgt.add(new Option(g.name, g.id));
-  });
-
-  const cSrc = document.getElementById('c-src-game');
-  const cTgt = document.getElementById('c-tgt-game');
-  CTRL_GAMES.forEach(g => {
-    cSrc.add(new Option(g.name, g.id));
-    cTgt.add(new Option(g.name, g.id));
-  });
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+function init() {
+  ['m-src-game','m-tgt-game'].forEach(id =>
+    MOUSE_GAMES.forEach(g => $(id).add(new Option(g.name, g.id))));
+  ['c-src-game','c-tgt-game'].forEach(id =>
+    CTRL_GAMES.forEach(g => $(id).add(new Option(g.name, g.id))));
 }
 
 function switchTab(name) {
-  ['mouse', 'controller'].forEach(t => {
-    document.getElementById('panel-' + t).classList.toggle('active', t === name);
-    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+  ['mouse','controller'].forEach(t => {
+    $(  'panel-'+t).classList.toggle('active', t === name);
+    $('tab-'+t).classList.toggle('active', t === name);
   });
 }
 
-// ═══════════════════════════════════════════════
-// MOUSE — SOURCE GAME CHANGE
-// ═══════════════════════════════════════════════
-
+/* ════════════════════════════════════════════
+   MOUSE — GAME CHANGE
+════════════════════════════════════════════ */
 function mSrcGameChange() {
-  const g = MOUSE_GAMES.find(x => x.id === document.getElementById('m-src-game').value);
-  const extraWrap = document.getElementById('m-src-extra');
-  const xyRow = document.getElementById('m-src-xy-row');
-  const scopeRow = document.getElementById('m-src-scope-row');
-
-  if (!g) { extraWrap.style.display = 'none'; return; }
-
-  const showExtra = g.hasXY || g.hasScope;
-  extraWrap.style.display = showExtra ? 'block' : 'none';
-  xyRow.style.display = g.hasXY ? 'grid' : 'none';
-  scopeRow.style.display = g.hasScope ? 'block' : 'none';
-
-  // Update placeholders with game ranges
-  const sensInput = document.getElementById('m-src-sens');
-  sensInput.placeholder = `${g.min}–${g.max}`;
-
-  mAutoConvert();
+  const g = MOUSE_GAMES.find(x => x.id === val('m-src-game'));
+  toggle('m-src-xy',         g?.hasXY,    'grid');
+  toggle('m-src-scope-wrap', g?.hasScope, 'block');
+  mLiveConvert();
 }
-
 function mTgtGameChange() {
-  const g = MOUSE_GAMES.find(x => x.id === document.getElementById('m-tgt-game').value);
-  const extraWrap = document.getElementById('m-tgt-extra');
-  const xyRow = document.getElementById('m-tgt-xy-row');
-  const scopeRow = document.getElementById('m-tgt-scope-row');
-
-  if (!g) { extraWrap.style.display = 'none'; return; }
-
-  const showExtra = g.hasXY || g.hasScope;
-  extraWrap.style.display = showExtra ? 'block' : 'none';
-  xyRow.style.display = g.hasXY ? 'grid' : 'none';
-  scopeRow.style.display = g.hasScope ? 'block' : 'none';
-
-  mAutoConvert();
+  const g = MOUSE_GAMES.find(x => x.id === val('m-tgt-game'));
+  toggle('m-tgt-xy',         g?.hasXY,    'grid');
+  toggle('m-tgt-scope-wrap', g?.hasScope, 'block');
+  mLiveConvert();
 }
 
-// ═══════════════════════════════════════════════
-// MOUSE — AUTO CONVERT (single target)
-// ═══════════════════════════════════════════════
+/* ════════════════════════════════════════════
+   MOUSE — LIVE CONVERT (single target)
+════════════════════════════════════════════ */
+function mLiveConvert() {
+  const srcG   = MOUSE_GAMES.find(x => x.id === val('m-src-game'));
+  const tgtG   = MOUSE_GAMES.find(x => x.id === val('m-tgt-game'));
+  const srcDpi = num('m-src-dpi') || 800;
+  const srcS   = num('m-src-sens');
+  const tgtDpi = num('m-tgt-dpi') || 800;
 
-function mAutoConvert() {
-  const srcGame = MOUSE_GAMES.find(x => x.id === document.getElementById('m-src-game').value);
-  const tgtGame = MOUSE_GAMES.find(x => x.id === document.getElementById('m-tgt-game').value);
-  const srcDpi  = parseFloat(document.getElementById('m-src-dpi').value) || 800;
-  const srcSens = parseFloat(document.getElementById('m-src-sens').value);
-  const tgtDpi  = parseFloat(document.getElementById('m-tgt-dpi').value) || 800;
+  ['m-src-cm360','m-tgt-sens','m-tgt-cm360','m-tgt-x','m-tgt-y','m-tgt-scope']
+    .forEach(id => setVal(id, ''));
+  hide('m-notice');
 
-  clearTargetFields();
+  if (!srcG || !srcS || srcS <= 0) return;
 
-  if (!srcGame || !srcSens || isNaN(srcSens) || srcSens <= 0) return;
+  const c360 = getCm360(srcG, srcDpi, srcS);
+  setVal('m-src-cm360', c360.toFixed(2));
+  $('m-footer-cm360').style.display = 'block';
+  $('m-footer-val').textContent = c360.toFixed(2);
 
-  const cm360 = getCm360(srcGame, srcDpi, srcSens);
-  document.getElementById('m-src-cm360').value = cm360.toFixed(2);
+  if (!tgtG) return;
 
-  if (!tgtGame) return;
+  const raw     = sensFromCm(tgtG, tgtDpi, c360);
+  const clamped = clamp(raw, tgtG.min, tgtG.max);
+  setVal('m-tgt-sens',  rd(clamped, tgtG.dec));
+  setVal('m-tgt-cm360', c360.toFixed(2));
 
-  const rawSens = getSensFromCm360(tgtGame, tgtDpi, cm360);
-  const clamped = clamp(rawSens, tgtGame.min, tgtGame.max);
-  const rounded = roundTo(clamped, tgtGame.decimals);
-
-  document.getElementById('m-tgt-sens').value = rounded;
-  document.getElementById('m-tgt-cm360').value = cm360.toFixed(2);
-
-  // XY
-  if (tgtGame.hasXY) {
-    // Use source X/Y if available, otherwise use main sens for both
-    const srcX = parseFloat(document.getElementById('m-src-x').value) || srcSens;
-    const srcY = parseFloat(document.getElementById('m-src-y').value) || srcSens;
-    const cm360x = getCm360(srcGame, srcDpi, srcX);
-    const cm360y = getCm360(srcGame, srcDpi, srcY);
-    const rx = clamp(getSensFromCm360(tgtGame, tgtDpi, cm360x), tgtGame.xMin, tgtGame.xMax);
-    const ry = clamp(getSensFromCm360(tgtGame, tgtDpi, cm360y), tgtGame.yMin, tgtGame.yMax);
-    document.getElementById('m-tgt-x').value = roundTo(rx, tgtGame.xDecimals);
-    document.getElementById('m-tgt-y').value = roundTo(ry, tgtGame.yDecimals);
+  if (tgtG.hasXY) {
+    const sx = num('m-src-x') || srcS, sy = num('m-src-y') || srcS;
+    const cx = getCm360(srcG, srcDpi, sx), cy = getCm360(srcG, srcDpi, sy);
+    setVal('m-tgt-x', rd(clamp(sensFromCm(tgtG, tgtDpi, cx), tgtG.xMin, tgtG.xMax), tgtG.xDec));
+    setVal('m-tgt-y', rd(clamp(sensFromCm(tgtG, tgtDpi, cy), tgtG.yMin, tgtG.yMax), tgtG.yDec));
   }
 
-  // Scope
-  if (tgtGame.hasScope && srcGame.hasScope) {
-    const srcScope = parseFloat(document.getElementById('m-src-scope').value);
-    if (!isNaN(srcScope) && srcScope > 0) {
-      // Scope multipliers convert 1:1 (they're already relative)
-      const tgtScope = clamp(srcScope, tgtGame.scopeMin, tgtGame.scopeMax);
-      document.getElementById('m-tgt-scope').value = roundTo(tgtScope, tgtGame.scopeDecimals);
-    }
+  if (tgtG.hasScope && srcG.hasScope) {
+    const sc = num('m-src-scope');
+    if (sc > 0) setVal('m-tgt-scope', rd(clamp(sc, tgtG.scopeMin, tgtG.scopeMax), tgtG.scopeDec));
   }
 
-  // Notice for clamped values
-  const notice = document.getElementById('m-tgt-notice');
-  if (rawSens < tgtGame.min || rawSens > tgtGame.max) {
-    const dir = rawSens < tgtGame.min ? 'below' : 'above';
-    notice.textContent = `Your cm/360 cannot be exactly matched in ${tgtGame.name} — the ideal sensitivity (${rawSens.toFixed(3)}) is ${dir} the game's allowed range (${tgtGame.min}–${tgtGame.max}). Clamped to nearest valid value.`;
-    notice.style.display = 'block';
-  } else {
-    notice.style.display = 'none';
+  if (raw < tgtG.min || raw > tgtG.max) {
+    const el = $('m-notice');
+    el.textContent = `Ideal sensitivity (${raw.toFixed(4)}) is ${raw < tgtG.min ? 'below' : 'above'} ${tgtG.name}'s range (${tgtG.min}–${tgtG.max}). Clamped to the nearest valid value.`;
+    el.style.display = 'block';
   }
 }
 
-function clearTargetFields() {
-  ['m-tgt-sens','m-tgt-cm360','m-tgt-x','m-tgt-y','m-tgt-scope'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  document.getElementById('m-tgt-notice').style.display = 'none';
-}
-
-// ═══════════════════════════════════════════════
-// MOUSE — CONVERT ALL GAMES
-// ═══════════════════════════════════════════════
-
+/* ════════════════════════════════════════════
+   MOUSE — CONVERT ALL
+════════════════════════════════════════════ */
 function mConvertAll() {
-  const srcGame = MOUSE_GAMES.find(x => x.id === document.getElementById('m-src-game').value);
-  const srcDpi  = parseFloat(document.getElementById('m-src-dpi').value) || 800;
-  const srcSens = parseFloat(document.getElementById('m-src-sens').value);
+  const srcG   = MOUSE_GAMES.find(x => x.id === val('m-src-game'));
+  const srcDpi = num('m-src-dpi') || 800;
+  const srcS   = num('m-src-sens');
 
-  if (!srcGame || !srcSens || isNaN(srcSens) || srcSens <= 0) {
-    alert('Please select a source game and enter your sensitivity first.');
+  if (!srcG || !srcS || srcS <= 0) {
+    alert('Please select a source game and enter your DPI and sensitivity first.');
     return;
   }
 
-  const cm360 = getCm360(srcGame, srcDpi, srcSens);
-  const edpi  = srcDpi * srcSens;
+  const c360 = getCm360(srcG, srcDpi, srcS);
+  $('m-stat-cm360').innerHTML = c360.toFixed(2) + '<span class="stat-unit"> cm</span>';
+  $('m-stat-edpi').textContent = Math.round(srcDpi * srcS);
+  $('m-stat-src').textContent  = srcG.name;
+  $('m-stats').style.display   = 'grid';
+  $('m-empty').style.display   = 'none';
+  $('m-footer-cm360').style.display = 'block';
+  $('m-footer-val').textContent = c360.toFixed(2);
 
-  // Stats
-  document.getElementById('m-stat-cm360').innerHTML = cm360.toFixed(2) + '<span class="stat-unit"> cm</span>';
-  document.getElementById('m-stat-edpi').textContent = Math.round(edpi);
-  document.getElementById('m-stat-src').textContent = srcGame.name;
-  document.getElementById('m-stats').style.display = 'grid';
-  document.getElementById('m-empty').style.display = 'none';
-
-  const tbody = document.getElementById('m-tbody');
+  const tbody = $('m-tbody');
   tbody.innerHTML = '';
 
   MOUSE_GAMES.forEach(g => {
-    const rawSens = getSensFromCm360(g, srcDpi, cm360);
-    const clamped = clamp(rawSens, g.min, g.max);
-    const rounded = roundTo(clamped, g.decimals);
-    const isClamped = rawSens < g.min || rawSens > g.max;
-    const isSource  = g.id === srcGame.id;
-
+    const raw     = sensFromCm(g, srcDpi, c360);
+    const clamped = clamp(raw, g.min, g.max);
+    const rounded = rd(clamped, g.dec);
+    const isClamped = raw < g.min || raw > g.max;
+    const isSrc     = g.id === srcG.id;
     const tr = document.createElement('tr');
-    if (isSource) tr.classList.add('is-source');
-
-    const copyVal = rounded.toString();
-
+    if (isSrc) tr.classList.add('row-source');
     tr.innerHTML = `
       <td>
-        <div class="game-name">${g.name}${isSource ? '<span class="source-tag">SOURCE</span>' : ''}</div>
-        <div class="game-genre">${g.genre}</div>
+        <div class="cell-game-name">${g.name}
+          ${isSrc     ? '<span class="tag tag-source">Source</span>' : ''}
+          ${isClamped ? '<span class="tag tag-warn">Clamped</span>'  : ''}
+        </div>
+        <div class="cell-game-genre">${g.genre}</div>
       </td>
       <td>
-        <div class="sens-value">${rounded}${isClamped ? '<span class="warn-tag">clamped</span>' : ''}</div>
-        ${isClamped ? `<div class="clamped-note">Ideal: ${rawSens.toFixed(3)} — outside ${g.min}–${g.max}</div>` : ''}
+        <div class="cell-sens">${rounded}</div>
+        ${isClamped ? `<div class="cell-note">Ideal ${raw.toFixed(4)} — outside ${g.min}–${g.max}</div>` : ''}
       </td>
-      <td>${cm360.toFixed(2)} cm</td>
-      <td><button class="copy-btn" onclick="copyValue(this,'${copyVal}')">Copy</button></td>
-    `;
+      <td><div class="cell-cm">${c360.toFixed(2)} cm</div></td>
+      <td><button class="copy-btn" onclick="doCopy(this,'${rounded}')">Copy</button></td>`;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('m-results-count').textContent = MOUSE_GAMES.length + ' games';
-  document.getElementById('m-results').style.display = 'block';
+  $('m-results-meta').textContent = MOUSE_GAMES.length + ' games';
+  $('m-results').style.display = 'block';
 }
 
-// ═══════════════════════════════════════════════
-// CONTROLLER — GAME CHANGE
-// ═══════════════════════════════════════════════
-
+/* ════════════════════════════════════════════
+   CONTROLLER — GAME CHANGE
+════════════════════════════════════════════ */
 function cSrcGameChange() {
-  const g = CTRL_GAMES.find(x => x.id === document.getElementById('c-src-game').value);
-  const sw = document.getElementById('c-src-scope-wrap');
-  if (!g) { sw.style.display = 'none'; return; }
-  sw.style.display = g.hasScope ? 'block' : 'none';
-  cAutoConvert();
+  const g = CTRL_GAMES.find(x => x.id === val('c-src-game'));
+  toggle('c-src-scope-wrap', g?.hasScope, 'block');
+  cLiveConvert();
 }
-
 function cTgtGameChange() {
-  const g = CTRL_GAMES.find(x => x.id === document.getElementById('c-tgt-game').value);
-  const sw = document.getElementById('c-tgt-scope-wrap');
-  if (!g) { sw.style.display = 'none'; return; }
-  sw.style.display = g.hasScope ? 'block' : 'none';
-  cAutoConvert();
+  const g = CTRL_GAMES.find(x => x.id === val('c-tgt-game'));
+  toggle('c-tgt-scope-wrap', g?.hasScope, 'block');
+  cLiveConvert();
 }
 
-// ═══════════════════════════════════════════════
-// CONTROLLER — AUTO CONVERT (single target)
-// ═══════════════════════════════════════════════
+/* ════════════════════════════════════════════
+   CONTROLLER — LIVE CONVERT
+════════════════════════════════════════════ */
+function cLiveConvert() {
+  const srcG = CTRL_GAMES.find(x => x.id === val('c-src-game'));
+  const tgtG = CTRL_GAMES.find(x => x.id === val('c-tgt-game'));
+  const srcX = num('c-src-x'), srcY = num('c-src-y'), srcSc = num('c-src-scope');
 
-function cAutoConvert() {
-  const srcGame = CTRL_GAMES.find(x => x.id === document.getElementById('c-src-game').value);
-  const tgtGame = CTRL_GAMES.find(x => x.id === document.getElementById('c-tgt-game').value);
-  const srcX    = parseFloat(document.getElementById('c-src-x').value);
-  const srcY    = parseFloat(document.getElementById('c-src-y').value);
-  const srcScope= parseFloat(document.getElementById('c-src-scope').value);
+  ['c-tgt-x','c-tgt-y','c-tgt-scope'].forEach(id => setVal(id, ''));
+  if (!srcG || !(srcX > 0) || !tgtG) return;
 
-  document.getElementById('c-tgt-x').value = '';
-  document.getElementById('c-tgt-y').value = '';
-  document.getElementById('c-tgt-scope').value = '';
-
-  if (!srcGame || isNaN(srcX) || srcX <= 0) return;
-  if (!tgtGame) return;
-
-  const normX = srcX / srcGame.scale_x;
-  const normY = isNaN(srcY) ? normX : srcY / srcGame.scale_y;
-
-  document.getElementById('c-tgt-x').value = roundTo(clamp(normX * tgtGame.scale_x, 0, tgtGame.scale_x), tgtGame.decimals);
-  document.getElementById('c-tgt-y').value = roundTo(clamp(normY * tgtGame.scale_y, 0, tgtGame.scale_y), tgtGame.decimals);
-
-  if (tgtGame.hasScope && srcGame.hasScope && !isNaN(srcScope) && srcScope > 0) {
-    const normScope = srcScope / srcGame.scopeScale;
-    document.getElementById('c-tgt-scope').value = roundTo(clamp(normScope * tgtGame.scopeScale, 0, tgtGame.scopeScale), tgtGame.scopeDecimals);
-  }
-
-  const notice = document.getElementById('c-tgt-notice');
-  notice.style.display = 'none';
+  const nX = srcX / srcG.sx, nY = (srcY > 0) ? srcY / srcG.sy : nX;
+  setVal('c-tgt-x', rd(clamp(nX * tgtG.sx, 0, tgtG.sx), tgtG.sd));
+  setVal('c-tgt-y', rd(clamp(nY * tgtG.sy, 0, tgtG.sy), tgtG.sd));
+  if (tgtG.hasScope && srcG.hasScope && srcSc > 0)
+    setVal('c-tgt-scope', rd(clamp((srcSc / srcG.ss) * tgtG.ss, 0, tgtG.ss), tgtG.ssd));
 }
 
-// ═══════════════════════════════════════════════
-// CONTROLLER — CONVERT ALL
-// ═══════════════════════════════════════════════
-
+/* ════════════════════════════════════════════
+   CONTROLLER — CONVERT ALL
+════════════════════════════════════════════ */
 function cConvertAll() {
-  const srcGame = CTRL_GAMES.find(x => x.id === document.getElementById('c-src-game').value);
-  const srcX    = parseFloat(document.getElementById('c-src-x').value);
-  const srcY    = parseFloat(document.getElementById('c-src-y').value);
-  const srcScope= parseFloat(document.getElementById('c-src-scope').value);
+  const srcG = CTRL_GAMES.find(x => x.id === val('c-src-game'));
+  const srcX = num('c-src-x'), srcY = num('c-src-y'), srcSc = num('c-src-scope');
 
-  if (!srcGame || isNaN(srcX) || srcX <= 0) {
+  if (!srcG || !(srcX > 0)) {
     alert('Please select a source game and enter your horizontal sensitivity first.');
     return;
   }
 
-  const normX = srcX / srcGame.scale_x;
-  const normY = isNaN(srcY) ? normX : srcY / srcGame.scale_y;
-  const normScope = (!isNaN(srcScope) && srcScope > 0 && srcGame.hasScope)
-    ? srcScope / srcGame.scopeScale : null;
+  const nX  = srcX / srcG.sx;
+  const nY  = (srcY > 0) ? srcY / srcG.sy : nX;
+  const nSc = (srcG.hasScope && srcSc > 0) ? srcSc / srcG.ss : null;
 
-  const tbody = document.getElementById('c-tbody');
+  const tbody = $('c-tbody');
   tbody.innerHTML = '';
 
   CTRL_GAMES.forEach(g => {
-    const resX = roundTo(clamp(normX * g.scale_x, 0, g.scale_x), g.decimals);
-    const resY = roundTo(clamp(normY * g.scale_y, 0, g.scale_y), g.decimals);
-    const resScope = (g.hasScope && normScope !== null)
-      ? roundTo(clamp(normScope * g.scopeScale, 0, g.scopeScale), g.scopeDecimals) : '—';
-    const isSource = g.id === srcGame.id;
-
+    const resX  = rd(clamp(nX * g.sx, 0, g.sx), g.sd);
+    const resY  = rd(clamp(nY * g.sy, 0, g.sy), g.sd);
+    const resSc = (g.hasScope && nSc !== null) ? rd(clamp(nSc * g.ss, 0, g.ss), g.ssd) : '—';
+    const isSrc = g.id === srcG.id;
     const tr = document.createElement('tr');
-    if (isSource) tr.classList.add('is-source');
-
+    if (isSrc) tr.classList.add('row-source');
     tr.innerHTML = `
       <td>
-        <div class="game-name">${g.name}${isSource ? '<span class="source-tag">SOURCE</span>' : ''}</div>
-        <div class="game-genre">${g.genre}</div>
+        <div class="cell-game-name">${g.name}${isSrc?'<span class="tag tag-source">Source</span>':''}</div>
+        <div class="cell-game-genre">${g.genre}</div>
       </td>
-      <td><span class="sens-value">${resX} / ${resY}</span></td>
-      <td><span class="sens-value">${resScope}</span></td>
-      <td><button class="copy-btn" onclick="copyValue(this,'${resX} / ${resY}')">Copy X/Y</button></td>
-    `;
+      <td><div class="cell-sens">${resX} / ${resY}</div></td>
+      <td><div class="cell-cm">${resSc}</div></td>
+      <td><button class="copy-btn" onclick="doCopy(this,'${resX} / ${resY}')">Copy</button></td>`;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('c-results-count').textContent = CTRL_GAMES.length + ' games';
-  document.getElementById('c-results').style.display = 'block';
-  document.getElementById('c-empty').style.display = 'none';
+  $('c-results-meta').textContent = CTRL_GAMES.length + ' games';
+  $('c-results').style.display    = 'block';
+  $('c-empty').style.display      = 'none';
 }
 
-// ═══════════════════════════════════════════════
-// UTILITY
-// ═══════════════════════════════════════════════
-
-function copyValue(btn, val) {
-  navigator.clipboard.writeText(val).then(() => {
+/* ════════════════════════════════════════════
+   COPY
+════════════════════════════════════════════ */
+function doCopy(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
   });
 }
 
-// ═══════════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', populateSelects);
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
