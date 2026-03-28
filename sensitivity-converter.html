@@ -149,8 +149,8 @@
   .tab-btn .icon { font-size: 16px; }
 
   /* Tab panels */
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+  .tab-panel { display: none !important; }
+  .tab-panel.active { display: block !important; }
 
   /* Converter layout */
   .converter-grid {
@@ -600,8 +600,8 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .result-box, .panel { animation: fadeIn 0.3s ease both; }
-  .games-table tr { animation: fadeIn 0.2s ease both; }
+  .result-box, .panel { animation: none; }
+  .games-table tr { animation: none; }
 
   .highlight-flash {
     animation: flash 0.4s ease;
@@ -1181,7 +1181,9 @@ function ctrlConvertAll() {
 }
 
 // Init
-populateSelects();
+document.addEventListener('DOMContentLoaded', function() {
+  populateSelects();
+});
 </script>
 </body>
 </html>
