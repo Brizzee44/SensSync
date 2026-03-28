@@ -428,7 +428,7 @@ html.dark .toggle-thumb {
               <label for="m-src-dpi">Mouse DPI</label>
               <input type="number" id="m-src-dpi" value="800" min="100" max="32000" step="100" oninput="syncDpi(); mLiveConvert()">
             </div>
-            <div class="field">
+            <div class="field" id="m-src-sens-wrap">
               <label for="m-src-sens">Sensitivity</label>
               <input type="number" id="m-src-sens" placeholder="e.g. 0.35" step="any" min="0" oninput="mLiveConvert()">
             </div>
@@ -481,7 +481,7 @@ html.dark .toggle-thumb {
               <label for="m-tgt-dpi">Mouse DPI <span style="font-weight:400;color:var(--text-4)">(matches source)</span></label>
               <input type="number" id="m-tgt-dpi" value="800" min="100" max="32000" step="100" oninput="mLiveConvert()">
             </div>
-            <div class="field is-output">
+            <div class="field is-output" id="m-tgt-sens-wrap">
               <label for="m-tgt-sens">Sensitivity</label>
               <input type="number" id="m-tgt-sens" readonly placeholder="—">
             </div>
@@ -664,18 +664,18 @@ const MOUSE_GAMES = [
   { id:'cs2',        name:'CS2 / CS:GO',           genre:'Tactical FPS',    yaw:0.022,   min:0.01,  max:5,    dec:3, hasXY:false, hasScope:false },
   { id:'valorant',   name:'Valorant',               genre:'Tactical FPS',    yaw:0.07,    min:0.01,  max:10,   dec:2, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:5,   scopeDec:2 },
   { id:'apex',       name:'Apex Legends',           genre:'Battle Royale',   yaw:0.022,   min:0.01,  max:3,    dec:2, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:3,   scopeDec:2 },
-  { id:'ow2',        name:'Overwatch 2',            genre:'Hero Shooter',    yaw:0.0066,  min:1,     max:100,  dec:1, hasXY:true,  xMin:1,xMax:100,xDec:1,yMin:1,yMax:100,yDec:1, hasScope:false },
-  { id:'fortnite',   name:'Fortnite',               genre:'Battle Royale',   yaw:0.5588,  min:0.001, max:1,    dec:3, hasXY:true,  xMin:0.001,xMax:1,xDec:3,yMin:0.001,yMax:1,yDec:3, hasScope:true, scopeMin:0.001,scopeMax:1,scopeDec:3 },
+  { id:'ow2',        name:'Overwatch 2',            genre:'Hero Shooter',    yaw:0.0066,  min:1,     max:100,  dec:1, hasXY:true,  xyOnly:true,  xMin:1,xMax:100,xDec:1,yMin:1,yMax:100,yDec:1, hasScope:false },
+  { id:'fortnite',   name:'Fortnite',               genre:'Battle Royale',   yaw:0.5588,  min:0.001, max:1,    dec:3, hasXY:true,  xyOnly:true,  xMin:0.001,xMax:1,xDec:3,yMin:0.001,yMax:1,yDec:3, hasScope:true, scopeMin:0.001,scopeMax:1,scopeDec:3 },
   { id:'warzone',    name:'Call of Duty: Warzone',  genre:'Battle Royale',   yaw:0.0066,  min:1,     max:20,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
   { id:'mw3',        name:'Modern Warfare III',     genre:'FPS',             yaw:0.0066,  min:1,     max:20,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
-  { id:'r6',         name:'Rainbow Six Siege',      genre:'Tactical FPS',    yaw:0.00572, min:1,     max:100,  dec:0, hasXY:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:1,scopeMax:100,scopeDec:0 },
+  { id:'r6',         name:'Rainbow Six Siege',      genre:'Tactical FPS',    yaw:0.00572, min:1,     max:100,  dec:0, hasXY:true,  xyOnly:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:1,scopeMax:100,scopeDec:0 },
   { id:'pubg',       name:'PUBG',                   genre:'Battle Royale',   yaw:0.0733,  min:0.01,  max:3,    dec:2, hasXY:false, hasScope:true,  scopeMin:0.01,scopeMax:3,  scopeDec:2 },
   { id:'destiny2',   name:'Destiny 2',              genre:'FPS',             yaw:0.01373, min:0,     max:10,   dec:0, hasXY:false, hasScope:false },
   { id:'halo',       name:'Halo Infinite',          genre:'FPS',             yaw:0.01746, min:1,     max:10,   dec:1, hasXY:false, hasScope:true,  scopeMin:0.1, scopeMax:5,   scopeDec:1 },
   { id:'tarkov',     name:'Escape from Tarkov',     genre:'Tactical FPS',    yaw:0.02,    min:0.01,  max:2,    dec:2, hasXY:false, hasScope:false },
   { id:'tf2',        name:'Team Fortress 2',        genre:'FPS',             yaw:0.022,   min:0.01,  max:10,   dec:3, hasXY:false, hasScope:false },
   { id:'quake',      name:'Quake Champions',        genre:'Arena FPS',       yaw:0.022,   min:0.01,  max:10,   dec:3, hasXY:false, hasScope:false },
-  { id:'bf2042',     name:'Battlefield 2042',       genre:'FPS',             yaw:0.006,   min:1,     max:100,  dec:0, hasXY:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:0.1,scopeMax:2,scopeDec:2 },
+  { id:'bf2042',     name:'Battlefield 2042',       genre:'FPS',             yaw:0.006,   min:1,     max:100,  dec:0, hasXY:true,  xyOnly:true,  xMin:1,xMax:100,xDec:0,yMin:1,yMax:100,yDec:0, hasScope:true, scopeMin:0.1,scopeMax:2,scopeDec:2 },
   { id:'hunt',       name:'Hunt: Showdown',         genre:'FPS',             yaw:0.03819, min:0.5,   max:5,    dec:2, hasXY:false, hasScope:false },
   { id:'paladins',   name:'Paladins',               genre:'Hero Shooter',    yaw:0.025,   min:10,    max:150,  dec:0, hasXY:false, hasScope:false },
   { id:'splitgate',  name:'Splitgate',              genre:'Arena FPS',       yaw:0.022,   min:0.01,  max:10,   dec:2, hasXY:false, hasScope:false },
@@ -738,12 +738,19 @@ function switchTab(name) {
 ════════════════════════════════════════════ */
 function mSrcGameChange() {
   const g = MOUSE_GAMES.find(x => x.id === val('m-src-game'));
+  // xyOnly games (R6, OW2, Fortnite, BF2042) have no single sensitivity field
+  const showSingle = g ? !g.xyOnly : true;
+  toggle('m-src-sens-wrap',  showSingle,  '');
   toggle('m-src-xy',         g?.hasXY,    'grid');
   toggle('m-src-scope-wrap', g?.hasScope, 'block');
+  // Clear sens field if switching to an xyOnly game
+  if (g?.xyOnly) setVal('m-src-sens', '');
   mLiveConvert();
 }
 function mTgtGameChange() {
   const g = MOUSE_GAMES.find(x => x.id === val('m-tgt-game'));
+  const showSingle = g ? !g.xyOnly : true;
+  toggle('m-tgt-sens-wrap',  showSingle,  '');
   toggle('m-tgt-xy',         g?.hasXY,    'grid');
   toggle('m-tgt-scope-wrap', g?.hasScope, 'block');
   mLiveConvert();
@@ -763,9 +770,11 @@ function mLiveConvert() {
     .forEach(id => setVal(id, ''));
   hide('m-notice');
 
-  if (!srcG || !srcS || srcS <= 0) return;
+  // For xyOnly games, derive the working cm/360 from the X input instead
+  const srcSensRaw = srcG?.xyOnly ? num('m-src-x') : srcS;
+  if (!srcG || !srcSensRaw || srcSensRaw <= 0) return;
 
-  const c360 = getCm360(srcG, srcDpi, srcS);
+  const c360 = getCm360(srcG, srcDpi, srcSensRaw);
   setVal('m-src-cm360', c360.toFixed(2));
   $('m-footer-cm360').style.display = 'block';
   $('m-footer-val').textContent = c360.toFixed(2);
@@ -778,7 +787,7 @@ function mLiveConvert() {
   setVal('m-tgt-cm360', c360.toFixed(2));
 
   if (tgtG.hasXY) {
-    const sx = num('m-src-x') || srcS, sy = num('m-src-y') || srcS;
+    const sx = num('m-src-x') || srcSensRaw, sy = num('m-src-y') || srcSensRaw;
     const cx = getCm360(srcG, srcDpi, sx), cy = getCm360(srcG, srcDpi, sy);
     setVal('m-tgt-x', rd(clamp(sensFromCm(tgtG, tgtDpi, cx), tgtG.xMin, tgtG.xMax), tgtG.xDec));
     setVal('m-tgt-y', rd(clamp(sensFromCm(tgtG, tgtDpi, cy), tgtG.yMin, tgtG.yMax), tgtG.yDec));
@@ -802,10 +811,11 @@ function mLiveConvert() {
 function mConvertAll() {
   const srcG   = MOUSE_GAMES.find(x => x.id === val('m-src-game'));
   const srcDpi = num('m-src-dpi') || 800;
-  const srcS   = num('m-src-sens');
+  const srcS   = srcG?.xyOnly ? num('m-src-x') : num('m-src-sens');
 
   if (!srcG || !srcS || srcS <= 0) {
-    alert('Please select a source game and enter your DPI and sensitivity first.');
+    const hint = srcG?.xyOnly ? 'horizontal (X) sensitivity' : 'DPI and sensitivity';
+    alert('Please select a source game and enter your ' + hint + ' first.');
     return;
   }
 
@@ -824,8 +834,8 @@ function mConvertAll() {
   const srcScope = num('m-src-scope');
 
   // cm/360 for each axis — fall back to main sens if not provided
-  const c360x = (srcG.hasXY && srcX > 0) ? getCm360(srcG, srcDpi, srcX) : c360;
-  const c360y = (srcG.hasXY && srcY > 0) ? getCm360(srcG, srcDpi, srcY) : c360;
+  const c360x = (srcX > 0) ? getCm360(srcG, srcDpi, srcX) : c360;
+  const c360y = (srcY > 0) ? getCm360(srcG, srcDpi, srcY) : c360;
 
   // Normalize scope as 0-1 ratio so we can remap per game
   const srcScopeNorm = (srcG.hasScope && srcScope > 0)
