@@ -426,7 +426,7 @@ html.dark .toggle-thumb {
           <div class="field-grid g2">
             <div class="field">
               <label for="m-src-dpi">Mouse DPI</label>
-              <input type="number" id="m-src-dpi" value="800" min="100" max="32000" step="100" oninput="mLiveConvert()">
+              <input type="number" id="m-src-dpi" value="800" min="100" max="32000" step="100" oninput="syncDpi(); mLiveConvert()">
             </div>
             <div class="field">
               <label for="m-src-sens">Sensitivity</label>
@@ -478,7 +478,7 @@ html.dark .toggle-thumb {
 
           <div class="field-grid g2">
             <div class="field">
-              <label for="m-tgt-dpi">Mouse DPI</label>
+              <label for="m-tgt-dpi">Mouse DPI <span style="font-weight:400;color:var(--text-4)">(matches source)</span></label>
               <input type="number" id="m-tgt-dpi" value="800" min="100" max="32000" step="100" oninput="mLiveConvert()">
             </div>
             <div class="field is-output">
@@ -968,6 +968,12 @@ function cConvertAll() {
 /* ════════════════════════════════════════════
    COPY
 ════════════════════════════════════════════ */
+function syncDpi() {
+  const srcDpi = document.getElementById('m-src-dpi').value;
+  const tgtDpi = document.getElementById('m-tgt-dpi');
+  tgtDpi.value = srcDpi;
+}
+
 function doCopyBtn(btn) {
   doCopy(btn, btn.dataset.copy);
 }
