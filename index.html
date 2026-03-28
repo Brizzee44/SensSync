@@ -29,6 +29,26 @@
   --r-sm:        6px;
 }
 
+/* ─── Dark theme ────────────────────────────────────────────────── */
+html.dark {
+  --bg:          #0f1117;
+  --surface:     #1a1d27;
+  --surface-alt: #141720;
+  --border:      #2a2d3a;
+  --text-1:      #f1f3f9;
+  --text-2:      #c9cdd8;
+  --text-3:      #8b90a0;
+  --text-4:      #5a5f72;
+  --accent:      #4d8ef0;
+  --accent-h:    #6ba3f5;
+  --accent-bg:   #1a2540;
+  --accent-bdr:  #2a3d66;
+  --green:       #34d472;
+  --green-bg:    #0d2318;
+  --amber:       #f5a623;
+  --amber-bg:    #271d0a;
+}
+
 html { font-size: 15px; }
 
 body {
@@ -38,6 +58,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .page {
@@ -272,6 +293,8 @@ tbody tr.row-source:hover td { background: #dbeafe; }
 .cell-note { font-size: 11.5px; color: var(--text-4); margin-top: 3px; }
 .cell-cm   { font-size: 13.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 
+.cell-sens-muted { color: var(--text-4); font-size: 13px; }
+
 .copy-btn {
   padding: 6px 14px; background: var(--surface-alt);
   border: 1px solid var(--border); border-radius: var(--r-sm);
@@ -284,6 +307,43 @@ tbody tr.row-source:hover td { background: #dbeafe; }
 /* ─── Empty state ───────────────────────────────────────────────── */
 .empty-state { padding: 60px 24px; text-align: center; color: var(--text-4); }
 .empty-state p { font-size: 14px; line-height: 1.7; }
+
+/* ─── Theme toggle ──────────────────────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+.theme-toggle .toggle-icon {
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+html.dark .theme-toggle .toggle-icon {
+  transform: rotate(180deg);
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
 
 /* ─── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 660px) {
@@ -308,7 +368,13 @@ tbody tr.row-source:hover td { background: #dbeafe; }
       <div class="wordmark-name">Sens<em>Sync</em></div>
       <div class="wordmark-badge">Beta</div>
     </div>
-    <div class="site-tagline">Match your muscle memory across any game.<br>Mouse &amp; keyboard · Controller</div>
+    <div class="header-right">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <span class="toggle-icon" id="theme-icon">☀️</span>
+        <span id="theme-label">Light</span>
+      </button>
+      <div class="site-tagline">Match your muscle memory across any game.<br>Mouse &amp; keyboard · Controller</div>
+    </div>
   </header>
 
   <nav class="tab-nav">
@@ -456,7 +522,7 @@ tbody tr.row-source:hover td { background: #dbeafe; }
         <div class="results-head-meta" id="m-results-meta"></div>
       </div>
       <table>
-        <thead><tr><th>Game</th><th>Sensitivity</th><th>cm / 360°</th><th></th></tr></thead>
+        <thead><tr><th>Game</th><th>Sensitivity</th><th>Horiz / Vert</th><th>Scope / ADS</th><th>cm / 360°</th><th></th></tr></thead>
         <tbody id="m-tbody"></tbody>
       </table>
     </div>
@@ -728,31 +794,72 @@ function mConvertAll() {
   $('m-footer-cm360').style.display = 'block';
   $('m-footer-val').textContent = c360.toFixed(2);
 
+  // Read optional source X/Y and scope inputs
+  const srcX     = num('m-src-x');
+  const srcY     = num('m-src-y');
+  const srcScope = num('m-src-scope');
+
+  // cm/360 for each axis — fall back to main sens if not provided
+  const c360x = (srcG.hasXY && srcX > 0) ? getCm360(srcG, srcDpi, srcX) : c360;
+  const c360y = (srcG.hasXY && srcY > 0) ? getCm360(srcG, srcDpi, srcY) : c360;
+
+  // Normalize scope as 0-1 ratio so we can remap per game
+  const srcScopeNorm = (srcG.hasScope && srcScope > 0)
+    ? clamp(srcScope / srcG.scopeMax, 0, 1) : null;
+
   const tbody = $('m-tbody');
   tbody.innerHTML = '';
 
   MOUSE_GAMES.forEach(g => {
+    // Main sensitivity
     const raw     = sensFromCm(g, srcDpi, c360);
     const clamped = clamp(raw, g.min, g.max);
     const rounded = rd(clamped, g.dec);
     const isClamped = raw < g.min || raw > g.max;
     const isSrc     = g.id === srcG.id;
+
+    // X / Y
+    let xyCell = '&#8212;';
+    if (g.hasXY) {
+      const rx = rd(clamp(sensFromCm(g, srcDpi, c360x), g.xMin, g.xMax), g.xDec);
+      const ry = rd(clamp(sensFromCm(g, srcDpi, c360y), g.yMin, g.yMax), g.yDec);
+      xyCell = rx + ' / ' + ry;
+    }
+
+    // Scope / ADS
+    let scopeCell = '&#8212;';
+    if (g.hasScope && srcScopeNorm !== null) {
+      const mapped = rd(clamp(srcScopeNorm * g.scopeMax, g.scopeMin, g.scopeMax), g.scopeDec);
+      scopeCell = String(mapped);
+    }
+
+    // Build copy string with all available values
+    const copyParts = ['Sens: ' + rounded];
+    if (xyCell !== '&#8212;') copyParts.push('X/Y: ' + xyCell);
+    if (scopeCell !== '&#8212;') copyParts.push('Scope: ' + scopeCell);
+    const copyStr = copyParts.join(' | ');
+
     const tr = document.createElement('tr');
     if (isSrc) tr.classList.add('row-source');
-    tr.innerHTML = `
-      <td>
-        <div class="cell-game-name">${g.name}
-          ${isSrc     ? '<span class="tag tag-source">Source</span>' : ''}
-          ${isClamped ? '<span class="tag tag-warn">Clamped</span>'  : ''}
-        </div>
-        <div class="cell-game-genre">${g.genre}</div>
-      </td>
-      <td>
-        <div class="cell-sens">${rounded}</div>
-        ${isClamped ? `<div class="cell-note">Ideal ${raw.toFixed(4)} — outside ${g.min}–${g.max}</div>` : ''}
-      </td>
-      <td><div class="cell-cm">${c360.toFixed(2)} cm</div></td>
-      <td><button class="copy-btn" onclick="doCopy(this,'${rounded}')">Copy</button></td>`;
+
+    const clampNote = isClamped
+      ? '<div class="cell-note">Ideal ' + raw.toFixed(4) + ' — outside ' + g.min + '–' + g.max + '</div>'
+      : '';
+
+    tr.innerHTML =
+      '<td>' +
+        '<div class="cell-game-name">' + g.name +
+          (isSrc     ? '<span class="tag tag-source">Source</span>' : '') +
+          (isClamped ? '<span class="tag tag-warn">Clamped</span>'  : '') +
+        '</div>' +
+        '<div class="cell-game-genre">' + g.genre + '</div>' +
+      '</td>' +
+      '<td><div class="cell-sens">' + rounded + '</div>' + clampNote + '</td>' +
+      '<td><div class="cell-sens">' + xyCell + '</div></td>' +
+      '<td><div class="cell-sens">' + scopeCell + '</div></td>' +
+      '<td><div class="cell-cm">' + c360.toFixed(2) + ' cm</div></td>' +
+      '<td><button class="copy-btn" data-copy="' + copyStr.replace(/"/g, '&quot;') + '" onclick="doCopyBtn(this)">Copy</button></td>';
+
     tbody.appendChild(tr);
   });
 
@@ -837,6 +944,10 @@ function cConvertAll() {
 /* ════════════════════════════════════════════
    COPY
 ════════════════════════════════════════════ */
+function doCopyBtn(btn) {
+  doCopy(btn, btn.dataset.copy);
+}
+
 function doCopy(btn, text) {
   navigator.clipboard.writeText(text).then(() => {
     btn.textContent = 'Copied!';
@@ -845,7 +956,36 @@ function doCopy(btn, text) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() {
+  init();
+  // Restore saved theme preference
+  if (localStorage.getItem('senssync-theme') === 'dark') {
+    applyDark();
+  }
+});
+
+function applyDark() {
+  document.documentElement.classList.add('dark');
+  document.getElementById('theme-icon').textContent = '🌙';
+  document.getElementById('theme-label').textContent = 'Dark';
+}
+
+function applyLight() {
+  document.documentElement.classList.remove('dark');
+  document.getElementById('theme-icon').textContent = '☀️';
+  document.getElementById('theme-label').textContent = 'Light';
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  if (isDark) {
+    applyLight();
+    localStorage.setItem('senssync-theme', 'light');
+  } else {
+    applyDark();
+    localStorage.setItem('senssync-theme', 'dark');
+  }
+}
 </script>
 </body>
 </html>
